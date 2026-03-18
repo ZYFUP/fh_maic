@@ -33,7 +33,7 @@ import type { SpeechAction } from '@/lib/types/action';
 import type { ImageProviderId } from '@/lib/media/types';
 import type { VideoProviderId } from '@/lib/media/types';
 import type { TTSProviderId } from '@/lib/audio/types';
-import { TTS_MAX_TEXT_LENGTH, splitLongSpeechActions } from '@/lib/audio/tts-utils';
+import { splitLongSpeechActions } from '@/lib/audio/tts-utils';
 
 const log = createLogger('ClassroomMedia');
 
