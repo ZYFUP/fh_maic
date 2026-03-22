@@ -888,6 +888,13 @@ export function Stage({
           // Use queueMicrotask to let any pending scene-switch reset settle first
           queueMicrotask(() => {
             if (sceneEpochRef.current !== epoch) return; // stale — scene changed
+
+            // Guard: if done signal arrives but TTS is still playing, hold the bubble
+            if (text === null && agentId === null && discussionTTS.isPlaying()) {
+              pendingDoneClearRef.current = true;
+              return;
+            }
+
             setLiveSpeech(text);
             if (agentId !== undefined) {
               setSpeakingAgentId(agentId);
