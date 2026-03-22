@@ -487,14 +487,6 @@ export function AgentBar() {
                   <span className="text-[13px] font-medium truncate min-w-0 flex-1">
                     {getAgentName(teacherAgent)}
                   </span>
-                  {showVoice && (
-                    <AgentVoicePill
-                      agent={teacherAgent}
-                      agentIndex={0}
-                      availableProviders={availableProviders}
-                      disabled={!ttsEnabled}
-                    />
-                  )}
                 </div>
               )}
 

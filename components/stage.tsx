@@ -103,6 +103,7 @@ export function Stage({
   // Selected agents from settings store (Zustand)
   const selectedAgentIds = useSettingsStore((s) => s.selectedAgentIds);
   const ttsMuted = useSettingsStore((s) => s.ttsMuted);
+  const ttsEnabled = useSettingsStore((s) => s.ttsEnabled);
 
   // Generate participants from selected agents
   const participants = useMemo(
@@ -123,7 +124,7 @@ export function Stage({
   const [audioAgentId, setAudioAgentId] = useState<string | null>(null);
 
   const discussionTTS = useDiscussionTTS({
-    enabled: !ttsMuted,
+    enabled: ttsEnabled && !ttsMuted,
     agents: selectedAgents,
     onAudioStateChange: (agentId, state) => {
       setAudioAgentId(agentId);

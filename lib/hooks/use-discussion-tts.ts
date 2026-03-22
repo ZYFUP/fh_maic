@@ -40,11 +40,7 @@ export function useDiscussionTTS({ enabled, agents, onAudioStateChange }: Discus
   onAudioStateChangeRef.current = onAudioStateChange;
   const processQueueRef = useRef<() => void>(() => {});
 
-  const {
-    speak: browserSpeak,
-    cancel: browserCancel,
-    availableVoices: browserAvailableVoices,
-  } = useBrowserTTS({
+  const { speak: browserSpeak, cancel: browserCancel } = useBrowserTTS({
     rate: ttsSpeed,
     onEnd: () => {
       isPlayingRef.current = false;
@@ -209,7 +205,7 @@ export function useDiscussionTTS({ enabled, agents, onAudioStateChange }: Discus
   useEffect(() => cleanup, [cleanup]);
 
   /** Returns true when TTS audio is still playing or queued — used by StreamBuffer hold logic. */
-  const shouldHold = useCallback(() => isPlayingRef.current, []);
+  const shouldHold = useCallback(() => isPlayingRef.current || queueRef.current.length > 0, []);
 
   return {
     handleSegmentSealed,
