@@ -11,6 +11,7 @@ import { cn } from '@/lib/utils';
 import { useStageStore } from '@/lib/store/stage';
 import { useSettingsStore } from '@/lib/store/settings';
 import { useAgentRegistry } from '@/lib/orchestration/registry/store';
+import { getAvailableProvidersWithVoices } from '@/lib/audio/voice-resolver';
 import { useI18n } from '@/lib/hooks/use-i18n';
 import {
   loadImageMapping,
@@ -393,6 +394,17 @@ function GenerationPreviewContent() {
             '/avatars/thinker-2.png',
           ];
 
+          const getAvailableVoicesForGeneration = () => {
+            const providers = getAvailableProvidersWithVoices(settings.ttsProvidersConfig);
+            return providers.flatMap((p) =>
+              p.voices.map((v) => ({
+                providerId: p.providerId,
+                voiceId: v.id,
+                voiceName: v.name,
+              })),
+            );
+          };
+
           // No outlines yet — agent generation uses only stage name + description
           const agentResp = await fetch('/api/generate/agent-profiles', {
             method: 'POST',
@@ -401,6 +413,7 @@ function GenerationPreviewContent() {
               stageInfo: { name: stage.name, description: stage.description },
               language: currentSession.requirements.language || 'zh-CN',
               availableAvatars: allAvatars,
+              availableVoices: getAvailableVoicesForGeneration(),
             }),
             signal,
           });

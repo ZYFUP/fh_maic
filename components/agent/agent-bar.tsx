@@ -264,18 +264,19 @@ export function AgentBar() {
   const nonTeacherSelected = selectedAgents.filter((a) => a.role !== 'teacher');
 
   const serverProviders = getAvailableProvidersWithVoices(ttsProvidersConfig);
-  const availableProviders: ProviderWithVoices[] = [
-    ...serverProviders,
-    ...(browserVoices.length > 0
-      ? [
-          {
-            providerId: 'browser-native-tts' as TTSProviderId,
-            providerName: 'Browser Native',
-            voices: browserVoices.map((v) => ({ id: v.voiceURI, name: v.name })),
-          },
-        ]
-      : []),
-  ];
+  // Only show browser native when no server providers are available
+  const availableProviders: ProviderWithVoices[] =
+    serverProviders.length > 0
+      ? serverProviders
+      : browserVoices.length > 0
+        ? [
+            {
+              providerId: 'browser-native-tts' as TTSProviderId,
+              providerName: 'Browser Native',
+              voices: browserVoices.map((v) => ({ id: v.voiceURI, name: v.name })),
+            },
+          ]
+        : [];
   const showVoice = availableProviders.length > 0;
 
   useEffect(() => {
