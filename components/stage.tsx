@@ -120,6 +120,7 @@ export function Stage({
 
   // Discussion TTS: audio indicator state
   const [audioIndicatorState, setAudioIndicatorState] = useState<AudioIndicatorState>('idle');
+  const audioIndicatorStateRef = useRef<AudioIndicatorState>('idle');
   const [audioAgentId, setAudioAgentId] = useState<string | null>(null);
 
   const discussionTTS = useDiscussionTTS({
@@ -128,6 +129,11 @@ export function Stage({
     onAudioStateChange: (agentId, state) => {
       setAudioAgentId(agentId);
       setAudioIndicatorState(state);
+      audioIndicatorStateRef.current = state;
+      // When audio finishes (idle), clear the bubble if buffer already drained
+      if (state === 'idle') {
+        setLiveSpeech(null);
+      }
     },
   });
 
@@ -877,9 +883,15 @@ export function Stage({
           // Use queueMicrotask to let any pending scene-switch reset settle first
           queueMicrotask(() => {
             if (sceneEpochRef.current !== epoch) return; // stale — scene changed
-            setLiveSpeech(text);
             if (agentId !== undefined) {
               setSpeakingAgentId(agentId);
+            }
+            // When buffer clears speech (text=null) but TTS audio is still
+            // playing, keep the bubble visible by not clearing liveSpeech.
+            if (text === null && audioIndicatorStateRef.current !== 'idle') {
+              // Don't clear — audio still playing
+            } else {
+              setLiveSpeech(text);
             }
             if (text !== null || agentId) {
               setChatIsStreaming(true);
