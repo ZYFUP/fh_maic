@@ -306,7 +306,7 @@ export function AgentBar() {
                       <span className="text-sm font-medium truncate min-w-0 flex-1">
                         {getAgentName(teacherAgent)}
                       </span>
-                      <span className="text-[10px] text-muted-foreground/50 shrink-0 min-w-[52px] text-right">
+                      <span className="text-[10px] text-muted-foreground/50 shrink-0 w-[60px] text-right">
                         {getAgentRole(teacherAgent)}
                       </span>
                       {showVoice && (
@@ -351,7 +351,7 @@ export function AgentBar() {
                           <span className="text-sm font-medium truncate min-w-0 flex-1">
                             {getAgentName(agent)}
                           </span>
-                          <span className="text-[10px] text-muted-foreground/50 shrink-0 min-w-[52px] text-right">
+                          <span className="text-[10px] text-muted-foreground/50 shrink-0 w-[60px] text-right">
                             {getAgentRole(agent)}
                           </span>
                           {showVoice && (
