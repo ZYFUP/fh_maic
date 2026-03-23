@@ -67,7 +67,7 @@ export async function POST(req: NextRequest) {
       requiresApiKey: body.requiresApiKey,
     });
 
-    if (!resolvedApiKey) {
+    if (!resolvedApiKey && body.requiresApiKey !== false) {
       return apiError('MISSING_API_KEY', 401, 'API Key is required');
     }
 
