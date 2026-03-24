@@ -13,27 +13,14 @@ import { motion, AnimatePresence } from 'motion/react';
 import { useStageStore } from '@/lib/store';
 import { useCanvasStore } from '@/lib/store/canvas';
 import { ScreenElement } from '@/components/slide-renderer/Editor/ScreenElement';
-import type { PPTElement, PPTLineElement } from '@/lib/types/slides';
+import type { PPTElement } from '@/lib/types/slides';
 import { useI18n } from '@/lib/hooks/use-i18n';
-import { getElementRange } from '@/lib/utils/element';
-
-type ElementBounds = {
-  minX: number;
-  minY: number;
-  maxX: number;
-  maxY: number;
-};
 
 export type WhiteboardCanvasHandle = {
   resetView: () => void;
 };
 
 type InteractiveWhiteboardCanvasProps = {
-  autoFitTransform: {
-    scale: number;
-    tx: number;
-    ty: number;
-  };
   canvasHeight: number;
   canvasWidth: number;
   containerWidth: number;
@@ -45,56 +32,6 @@ type InteractiveWhiteboardCanvasProps = {
   readyHintText: string;
   readyText: string;
 };
-
-function getLineBounds(element: PPTLineElement): ElementBounds {
-  const originX = element.left ?? 0;
-  const originY = element.top ?? 0;
-  const points: Array<[number, number]> = [element.start, element.end];
-
-  if (element.broken) {
-    points.push(element.broken);
-  }
-
-  if (element.broken2) {
-    const horizontalFirst =
-      Math.abs(element.end[0] - element.start[0]) >= Math.abs(element.end[1] - element.start[1]);
-
-    if (horizontalFirst) {
-      points.push([element.broken2[0], element.start[1]], [element.broken2[0], element.end[1]]);
-    } else {
-      points.push([element.start[0], element.broken2[1]], [element.end[0], element.broken2[1]]);
-    }
-  }
-
-  if (element.curve) {
-    points.push(element.curve);
-  }
-
-  if (element.cubic) {
-    points.push(...element.cubic);
-  }
-
-  const xs = points.map(([x]) => originX + x);
-  const ys = points.map(([, y]) => originY + y);
-  const strokePad = Math.max(element.width ?? 0, 1) / 2;
-  const markerPad = element.points.some(Boolean) ? Math.max(element.width ?? 0, 1) * 1.5 : 0;
-  const pad = strokePad + markerPad;
-
-  return {
-    minX: Math.min(...xs) - pad,
-    minY: Math.min(...ys) - pad,
-    maxX: Math.max(...xs) + pad,
-    maxY: Math.max(...ys) + pad,
-  };
-}
-
-function getWhiteboardElementBounds(element: PPTElement): ElementBounds {
-  if (element.type === 'line') {
-    return getLineBounds(element);
-  }
-
-  return getElementRange(element);
-}
 
 function AnimatedElement({
   element,
@@ -161,7 +98,6 @@ const InteractiveWhiteboardCanvas = forwardRef<
   InteractiveWhiteboardCanvasProps
 >(function InteractiveWhiteboardCanvas(
   {
-    autoFitTransform,
     canvasHeight,
     canvasWidth,
     containerWidth,
@@ -365,13 +301,6 @@ const InteractiveWhiteboardCanvas = forwardRef<
     [resetView],
   );
 
-  // Content-only transform (autoFit inside the canvas)
-  const contentTransform = useMemo(
-    () =>
-      `translate(${autoFitTransform.tx}px, ${autoFitTransform.ty}px) scale(${autoFitTransform.scale})`,
-    [autoFitTransform],
-  );
-
   // Canvas position: centered in workspace, offset by pan, scaled by containerScale * viewZoom
   const totalScale = containerScale * viewZoom;
   const canvasScreenX = (containerWidth - canvasWidth * totalScale) / 2 + panX * totalScale;
@@ -392,9 +321,9 @@ const InteractiveWhiteboardCanvas = forwardRef<
       onPointerCancel={handlePointerUp}
       onDoubleClick={handleDoubleClick}
     >
-      {/* Bounded canvas — white background, positioned and scaled */}
+      {/* Bounded canvas — white background, positioned and scaled. No overflow-hidden so elements can spill into transparent space. */}
       <div
-        className="absolute bg-white shadow-2xl rounded-lg overflow-hidden border border-gray-200 dark:border-gray-600"
+        className="absolute bg-white shadow-2xl rounded-lg border border-gray-200 dark:border-gray-600"
         style={{
           width: canvasWidth,
           height: canvasHeight,
@@ -426,14 +355,8 @@ const InteractiveWhiteboardCanvas = forwardRef<
           )}
         </AnimatePresence>
 
-        {/* Content layer — autoFit only */}
-        <div
-          className="absolute inset-0"
-          style={{
-            transform: contentTransform,
-            transformOrigin: '0 0',
-          }}
-        >
+        {/* Content layer — elements rendered at their raw coordinates */}
+        <div className="absolute inset-0">
           <AnimatePresence mode="popLayout">
             {elements.map((element, index) => (
               <AnimatedElement
@@ -472,7 +395,6 @@ export const WhiteboardCanvas = forwardRef<WhiteboardCanvasHandle, WhiteboardCan
 
     const canvasWidth = 1000;
     const canvasHeight = 562.5;
-    const padding = 24;
 
     const containerScale = useMemo(() => {
       if (containerSize.width === 0 || containerSize.height === 0) return 1;
@@ -502,51 +424,10 @@ export const WhiteboardCanvas = forwardRef<WhiteboardCanvasHandle, WhiteboardCan
       return () => observer.disconnect();
     }, []);
 
-    const autoFitTransform = useMemo(() => {
-      if (elements.length === 0) {
-        return { scale: 1, tx: 0, ty: 0 };
-      }
-
-      let minX = Infinity;
-      let minY = Infinity;
-      let maxX = -Infinity;
-      let maxY = -Infinity;
-
-      for (const element of elements) {
-        const bounds = getWhiteboardElementBounds(element);
-        minX = Math.min(minX, bounds.minX);
-        minY = Math.min(minY, bounds.minY);
-        maxX = Math.max(maxX, bounds.maxX);
-        maxY = Math.max(maxY, bounds.maxY);
-      }
-
-      const contentWidth = maxX - minX;
-      const contentHeight = maxY - minY;
-      const overflowsX = minX < 0 || maxX > canvasWidth;
-      const overflowsY = minY < 0 || maxY > canvasHeight;
-
-      if (!overflowsX && !overflowsY) {
-        return { scale: 1, tx: 0, ty: 0 };
-      }
-
-      const availableWidth = canvasWidth - padding * 2;
-      const availableHeight = canvasHeight - padding * 2;
-      const fitScale = Math.min(1, availableWidth / contentWidth, availableHeight / contentHeight);
-      const scaledWidth = contentWidth * fitScale;
-      const scaledHeight = contentHeight * fitScale;
-
-      return {
-        scale: fitScale,
-        tx: (canvasWidth - scaledWidth) / 2 - minX * fitScale,
-        ty: (canvasHeight - scaledHeight) / 2 - minY * fitScale,
-      };
-    }, [canvasHeight, canvasWidth, elements, padding]);
-
     return (
       <div ref={containerRef} className="w-full h-full overflow-hidden">
         <InteractiveWhiteboardCanvas
           ref={ref}
-          autoFitTransform={autoFitTransform}
           canvasHeight={canvasHeight}
           canvasWidth={canvasWidth}
           containerWidth={containerSize.width}
