@@ -187,21 +187,38 @@ export function PresentationBubbleCard({
               <Loader2 className="w-3.5 h-3.5 text-amber-500 dark:text-amber-400 animate-spin" />
             )}
             {audioIndicatorState === 'playing' && (
-              <div className="relative flex items-center justify-center w-4 h-4">
-                <Volume2 className="w-3.5 h-3.5 text-gray-500 dark:text-gray-400 relative z-10" />
-                {[0, 0.6, 1.2].map((delay) => (
-                  <motion.div
-                    key={delay}
-                    className="absolute inset-0 rounded-full border border-gray-400/40 dark:border-gray-500/40"
-                    animate={{ scale: [1, 2.2], opacity: [0.5, 0] }}
-                    transition={{
-                      repeat: Infinity,
-                      duration: 1.8,
-                      delay,
-                      ease: 'easeOut',
-                    }}
-                  />
-                ))}
+              <div className="relative flex items-center">
+                <Volume2 className="w-3.5 h-3.5 text-gray-500 dark:text-gray-400" />
+                <svg
+                  width="10"
+                  height="14"
+                  viewBox="0 0 10 14"
+                  className="ml-[-1px]"
+                  aria-hidden="true"
+                >
+                  {[
+                    { d: 'M2 4.5 Q5 7 2 9.5', delay: 0 },
+                    { d: 'M4 3 Q8.5 7 4 11', delay: 0.3 },
+                    { d: 'M6 1.5 Q12 7 6 12.5', delay: 0.6 },
+                  ].map(({ d, delay }) => (
+                    <motion.path
+                      key={d}
+                      d={d}
+                      fill="none"
+                      stroke="currentColor"
+                      strokeWidth="1.2"
+                      strokeLinecap="round"
+                      className="text-gray-400 dark:text-gray-500"
+                      animate={{ opacity: [0, 0.7, 0] }}
+                      transition={{
+                        repeat: Infinity,
+                        duration: 1.5,
+                        delay,
+                        ease: 'easeInOut',
+                      }}
+                    />
+                  ))}
+                </svg>
               </div>
             )}
           </div>
