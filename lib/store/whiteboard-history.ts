@@ -28,9 +28,6 @@ interface WhiteboardHistoryState {
   snapshots: WhiteboardSnapshot[];
   /** Maximum number of snapshots to keep */
   maxSnapshots: number;
-  /** elementsKey of a just-restored snapshot; used to skip auto-snapshot once */
-  restoredKey: string | null;
-
   // Actions
   /** Save a snapshot of the current whiteboard elements */
   pushSnapshot: (elements: PPTElement[], label?: string) => void;
@@ -38,14 +35,11 @@ interface WhiteboardHistoryState {
   getSnapshot: (index: number) => WhiteboardSnapshot | null;
   /** Clear all history */
   clearHistory: () => void;
-  /** Set the restored key (elementsKey of the snapshot being restored) */
-  setRestoredKey: (key: string | null) => void;
 }
 
 export const useWhiteboardHistoryStore = create<WhiteboardHistoryState>((set, get) => ({
   snapshots: [],
   maxSnapshots: 20,
-  restoredKey: null,
 
   pushSnapshot: (elements, label) => {
     // Don't save empty snapshots
@@ -53,7 +47,7 @@ export const useWhiteboardHistoryStore = create<WhiteboardHistoryState>((set, ge
 
     const { snapshots } = get();
     const newFingerprint = elementFingerprint(elements);
-    if (snapshots.length > 0 && snapshots[snapshots.length - 1].fingerprint === newFingerprint) {
+    if (snapshots.some((s) => s.fingerprint === newFingerprint)) {
       return;
     }
 
@@ -79,6 +73,5 @@ export const useWhiteboardHistoryStore = create<WhiteboardHistoryState>((set, ge
     return snapshots[index] ?? null;
   },
 
-  clearHistory: () => set({ snapshots: [], restoredKey: null }),
-  setRestoredKey: (key) => set({ restoredKey: key }),
+  clearHistory: () => set({ snapshots: [] }),
 }));
