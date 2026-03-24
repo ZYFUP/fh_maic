@@ -208,6 +208,8 @@ export function useDiscussionTTS({ enabled, agents, onAudioStateChange }: Discus
     browserCancelRef.current();
     queueRef.current = [];
     isPlayingRef.current = false;
+    pausedRef.current = false;
+    segmentDoneCounterRef.current = 0;
     onAudioStateChangeRef.current?.(null, 'idle');
   }, []);
 

@@ -628,10 +628,6 @@ export function Roundtable({
           side="left"
           onBubbleClick={handlePresentationBubbleClick}
           audioIndicatorState={audioIndicatorState ?? 'idle'}
-          audioAgentColor={
-            getAgentConfig(speakingAgentId || '')?.color ??
-            getAgentConfig(teacherParticipant?.id || '')?.color
-          }
           buttonState={enrichedPlaybackView?.buttonState}
           isPaused={isDiscussionPaused}
         />
@@ -839,10 +835,6 @@ export function Roundtable({
             side="right"
             onBubbleClick={handlePresentationBubbleClick}
             audioIndicatorState={audioIndicatorState ?? 'idle'}
-            audioAgentColor={
-              getAgentConfig(speakingAgentId || '')?.color ??
-              getAgentConfig(teacherParticipant?.id || '')?.color
-            }
             buttonState={enrichedPlaybackView?.buttonState}
             isPaused={isDiscussionPaused}
           />

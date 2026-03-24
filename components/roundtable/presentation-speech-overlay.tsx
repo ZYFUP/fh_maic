@@ -22,7 +22,6 @@ interface PresentationSpeechOverlayProps {
   readonly side?: 'left' | 'right';
   readonly onBubbleClick?: () => void;
   readonly audioIndicatorState?: AudioIndicatorState;
-  readonly audioAgentColor?: string;
   readonly buttonState?: 'play' | 'bars' | 'restart' | 'none';
   readonly isPaused?: boolean;
 }
@@ -123,14 +122,12 @@ export function PresentationBubbleCard({
   bubble,
   onClick,
   audioIndicatorState,
-  audioAgentColor,
   buttonState,
   isPaused,
 }: {
   readonly bubble: PresentationBubbleModel;
   readonly onClick?: () => void;
   readonly audioIndicatorState?: AudioIndicatorState;
-  readonly audioAgentColor?: string;
   readonly buttonState?: 'play' | 'bars' | 'restart' | 'none';
   readonly isPaused?: boolean;
 }) {
@@ -290,7 +287,6 @@ export function PresentationSpeechOverlay({
   side = 'left',
   onBubbleClick,
   audioIndicatorState,
-  audioAgentColor,
   buttonState,
   isPaused,
 }: PresentationSpeechOverlayProps) {
@@ -329,7 +325,6 @@ export function PresentationSpeechOverlay({
                 bubble={bubble}
                 onClick={onBubbleClick}
                 audioIndicatorState={audioIndicatorState}
-                audioAgentColor={audioAgentColor}
                 buttonState={buttonState}
                 isPaused={isPaused}
               />
@@ -356,7 +351,6 @@ export function PresentationSpeechOverlay({
             bubble={bubble}
             onClick={onBubbleClick}
             audioIndicatorState={audioIndicatorState}
-            audioAgentColor={audioAgentColor}
             buttonState={buttonState}
             isPaused={isPaused}
           />

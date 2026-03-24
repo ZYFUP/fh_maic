@@ -564,6 +564,7 @@ export function Stage({
   // Cleanup on unmount
   useEffect(() => {
     const audioPlayer = audioPlayerRef.current;
+    const chatArea = chatAreaRef.current;
     return () => {
       if (engineRef.current) {
         engineRef.current.stop();
@@ -573,7 +574,7 @@ export function Stage({
         discussionAbortRef.current.abort();
       }
       discussionTTS.cleanup();
-      chatAreaRef.current?.endActiveSession();
+      chatArea?.endActiveSession();
       clearPresentationIdleTimer();
     };
     // eslint-disable-next-line react-hooks/exhaustive-deps -- unmount-only cleanup, clearPresentationIdleTimer is stable
