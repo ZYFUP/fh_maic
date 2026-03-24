@@ -137,6 +137,19 @@ export function useChatSessions(options: UseChatSessionsOptions = {}) {
   // StreamBuffer instances per session (SSE + lecture share the same buffer model)
   const buffersRef = useRef<Map<string, StreamBuffer>>(new Map());
 
+  // Abort active stream and destroy buffers on unmount
+  useEffect(() => {
+    const buffers = buffersRef.current;
+    return () => {
+      if (abortControllerRef.current) {
+        abortControllerRef.current.abort();
+        abortControllerRef.current = null;
+      }
+      buffers.forEach((buf) => buf.shutdown());
+      buffers.clear();
+    };
+  }, []);
+
   // Session-scoped "paused intent" — survives buffer recreation across turns.
   // When true, newly created discussion/QA buffers are immediately paused.
   const livePausedRef = useRef(false);
