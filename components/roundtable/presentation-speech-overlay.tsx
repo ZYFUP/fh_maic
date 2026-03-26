@@ -122,11 +122,13 @@ export function buildPresentationBubbleModel({
 function CollapsedBubblePill({
   bubble,
   onExpand,
-  onResume,
+  onPlayPause,
+  isPaused,
 }: {
   readonly bubble: PresentationBubbleModel;
   readonly onExpand: () => void;
-  readonly onResume?: () => void;
+  readonly onPlayPause?: () => void;
+  readonly isPaused?: boolean;
 }) {
   return (
     <div className="flex items-center gap-2" onClick={onExpand}>
@@ -158,11 +160,11 @@ function CollapsedBubblePill({
         </span>
         <ChevronUp className="w-3 h-3 text-gray-400 dark:text-gray-500 shrink-0" />
       </div>
-      {onResume && (
+      {onPlayPause && (
         <div
           onClick={(e) => {
             e.stopPropagation();
-            onResume();
+            onPlayPause();
           }}
           className={cn(
             'p-2 rounded-full border backdrop-blur-xl shadow-md cursor-pointer transition-all duration-200',
@@ -174,7 +176,11 @@ function CollapsedBubblePill({
                 : 'bg-white/80 dark:bg-gray-900/85 border-gray-200/70 dark:border-gray-700/70 hover:bg-gray-100 dark:hover:bg-gray-800/70',
           )}
         >
-          <Play className="w-3.5 h-3.5 text-gray-500 dark:text-gray-400 ml-0.5" />
+          {isPaused ? (
+            <Play className="w-3.5 h-3.5 text-gray-500 dark:text-gray-400 ml-0.5" />
+          ) : (
+            <Pause className="w-3.5 h-3.5 text-gray-500 dark:text-gray-400" />
+          )}
         </div>
       )}
     </div>
@@ -254,7 +260,7 @@ export function PresentationBubbleCard({
             )}
           </div>
         </div>
-        {isPaused && onCollapse && (
+        {onCollapse && (
           <div
             onClick={(e) => {
               e.stopPropagation();
@@ -305,7 +311,10 @@ export function PresentationBubbleCard({
 
           if (buttonState === 'play') {
             return (
-              <div className="absolute right-2.5 bottom-2.5 p-1.5 rounded-full bg-white/40 dark:bg-gray-800/40 backdrop-blur-sm group-hover/bubble:bg-purple-100 dark:group-hover/bubble:bg-purple-900/50 transition-all duration-300">
+              <div
+                onClick={onClick}
+                className="absolute right-2.5 bottom-2.5 z-20 p-1.5 rounded-full bg-white/40 dark:bg-gray-800/40 backdrop-blur-sm group-hover/bubble:bg-purple-100 dark:group-hover/bubble:bg-purple-900/50 transition-all duration-300 cursor-pointer"
+              >
                 <Play className="w-3.5 h-3.5 text-gray-400 dark:text-gray-500 group-hover/bubble:text-purple-600 dark:group-hover/bubble:text-purple-400 ml-0.5" />
               </div>
             );
@@ -313,7 +322,10 @@ export function PresentationBubbleCard({
 
           if (buttonState === 'restart') {
             return (
-              <div className="absolute right-2.5 bottom-2.5 p-1.5 rounded-full bg-white/40 dark:bg-gray-800/40 backdrop-blur-sm group-hover/bubble:bg-purple-100 dark:group-hover/bubble:bg-purple-900/50 transition-all duration-300">
+              <div
+                onClick={onClick}
+                className="absolute right-2.5 bottom-2.5 z-20 p-1.5 rounded-full bg-white/40 dark:bg-gray-800/40 backdrop-blur-sm group-hover/bubble:bg-purple-100 dark:group-hover/bubble:bg-purple-900/50 transition-all duration-300 cursor-pointer"
+              >
                 <Repeat className="w-3.5 h-3.5 text-gray-400 dark:text-gray-500 group-hover/bubble:text-purple-600 dark:group-hover/bubble:text-purple-400" />
               </div>
             );
@@ -321,7 +333,10 @@ export function PresentationBubbleCard({
 
           // buttonState === 'bars'
           return (
-            <div className="absolute right-2.5 bottom-2.5 p-1.5 rounded-full bg-white/40 dark:bg-gray-800/40 backdrop-blur-sm group-hover/bubble:bg-purple-100 dark:group-hover/bubble:bg-purple-900/50 transition-all duration-300">
+            <div
+              onClick={onClick}
+              className="absolute right-2.5 bottom-2.5 p-1.5 rounded-full bg-white/40 dark:bg-gray-800/40 backdrop-blur-sm group-hover/bubble:bg-purple-100 dark:group-hover/bubble:bg-purple-900/50 transition-all duration-300 cursor-pointer"
+            >
               {isPaused ? (
                 <Play className="w-3.5 h-3.5 text-amber-500 dark:text-amber-400 group-hover/bubble:text-purple-600 dark:group-hover/bubble:text-purple-400 ml-0.5" />
               ) : (
@@ -380,10 +395,10 @@ export function PresentationSpeechOverlay({
     userAvatar,
   });
 
-  // Track which speaker the user collapsed — derived state avoids effects/refs.
-  // isCollapsed is true only when the user explicitly collapsed THIS speaker while paused.
-  const [collapsedForKey, setCollapsedForKey] = useState<string | null>(null);
-  const isCollapsed = isPaused && collapsedForKey === bubble?.key;
+  // Persistent collapse: once collapsed, stay collapsed until user explicitly expands.
+  // Left/right sides are separate component instances so they track independently.
+  // Right-side agents share a single instance, so all agents share the same collapse state.
+  const [isCollapsed, setIsCollapsed] = useState(false);
 
   const matchesSide = !!(bubble && bubble.side === side);
 
@@ -399,8 +414,9 @@ export function PresentationSpeechOverlay({
         >
           <CollapsedBubblePill
             bubble={b}
-            onExpand={() => setCollapsedForKey(null)}
-            onResume={onBubbleClick}
+            onExpand={() => setIsCollapsed(false)}
+            onPlayPause={onBubbleClick}
+            isPaused={isPaused}
           />
         </motion.div>
       ) : (
@@ -415,7 +431,7 @@ export function PresentationSpeechOverlay({
           <PresentationBubbleCard
             bubble={b}
             onClick={onBubbleClick}
-            onCollapse={isPaused ? () => setCollapsedForKey(b.key) : undefined}
+            onCollapse={() => setIsCollapsed(true)}
             audioIndicatorState={audioIndicatorState}
             buttonState={buttonState}
             isPaused={isPaused}
