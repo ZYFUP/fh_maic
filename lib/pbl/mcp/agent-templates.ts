@@ -4,18 +4,26 @@
  * Migrated from PBL-Nano with multi-language support.
  */
 
+import { getCourseLanguagePromptName } from '@/lib/i18n/course-languages';
+
+function appendLanguageInstruction(prompt: string, language: string): string {
+  if (language === 'zh-CN' || language === 'en-US') return prompt;
+  const langName = getCourseLanguagePromptName(language);
+  return `${prompt}\n\n## Language (CRITICAL)\nYou MUST respond in ${langName}.`;
+}
+
 export function getQuestionAgentPrompt(language: string = 'en-US'): string {
   if (language === 'zh-CN') {
     return QUESTION_AGENT_TEMPLATE_PROMPT_ZH;
   }
-  return QUESTION_AGENT_TEMPLATE_PROMPT;
+  return appendLanguageInstruction(QUESTION_AGENT_TEMPLATE_PROMPT, language);
 }
 
 export function getJudgeAgentPrompt(language: string = 'en-US'): string {
   if (language === 'zh-CN') {
     return JUDGE_AGENT_TEMPLATE_PROMPT_ZH;
   }
-  return JUDGE_AGENT_TEMPLATE_PROMPT;
+  return appendLanguageInstruction(JUDGE_AGENT_TEMPLATE_PROMPT, language);
 }
 
 export const QUESTION_AGENT_TEMPLATE_PROMPT = `You are a Question Agent in a Project-Based Learning platform. Your role is to help students understand and complete their assigned issue.

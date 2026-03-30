@@ -5,6 +5,8 @@
  * Enhanced with multi-language support and configurable parameters.
  */
 
+import { getCourseLanguagePromptName } from '@/lib/i18n/course-languages';
+
 export interface PBLSystemPromptConfig {
   projectTopic: string;
   projectDescription: string;
@@ -19,6 +21,12 @@ export function buildPBLSystemPrompt(config: PBLSystemPromptConfig): string {
   if (language === 'zh-CN') {
     return buildPBLSystemPromptZH(config);
   }
+
+  const langName = getCourseLanguagePromptName(language);
+  const langInstruction =
+    language !== 'en-US'
+      ? `\n\n## Language (CRITICAL)\nYou MUST produce ALL output in ${langName}. Every title, description, role name, issue text, and any other generated content MUST be in ${langName}.\n`
+      : '';
 
   return `You are a Teaching Assistant (TA) on a Project-Based Learning platform. You are fully responsible for designing group projects for students based on the course information provided by the teacher.
 
@@ -81,7 +89,7 @@ When you create issues:
 
 **IMPORTANT**: Once you have configured the project info, defined all necessary agents (roles), and created the issueboard with tasks, you MUST set your mode to **idle** to indicate completion.
 
-Your initial mode is **project_info**.`;
+Your initial mode is **project_info**.${langInstruction}`;
 }
 
 function buildPBLSystemPromptZH(config: PBLSystemPromptConfig): string {

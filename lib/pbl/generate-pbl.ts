@@ -18,6 +18,7 @@ import { ProjectMCP } from './mcp/project-mcp';
 import { AgentMCP } from './mcp/agent-mcp';
 import { IssueboardMCP } from './mcp/issueboard-mcp';
 import { buildPBLSystemPrompt } from './pbl-system-prompt';
+import { getCourseLanguagePromptName } from '@/lib/i18n/course-languages';
 import type { PBLMode } from './types';
 
 export interface GeneratePBLConfig {
@@ -290,7 +291,7 @@ export async function generatePBLContent(
       prompt:
         language === 'zh-CN'
           ? `请设计一个PBL项目。现在从 project_info 模式开始，先设置项目标题和描述。`
-          : `Design a PBL project. Start in project_info mode by setting the project title and description.`,
+          : `Design a PBL project. Start in project_info mode by setting the project title and description.${language !== 'en-US' ? ` Respond in ${getCourseLanguagePromptName(language)}.` : ''}`,
       tools: pblTools,
       stopWhen: stepCountIs(30),
       onStepFinish: ({ toolCalls, text }) => {
@@ -395,7 +396,7 @@ Based on the issue information above, generate 1-3 specific, actionable question
 - Help break down the problem
 - Encourage critical thinking
 
-Format your response as a numbered list.`;
+Format your response as a numbered list.${language !== 'en-US' ? `\n\nIMPORTANT: Generate all questions in ${getCourseLanguagePromptName(language)}.` : ''}`;
 
     const questionResult = await callLLM(
       {
