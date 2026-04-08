@@ -30,6 +30,7 @@ import {
 import type { UserRequirements } from '@/lib/types/generation';
 import type { Scene, Stage } from '@/lib/types/stage';
 import { AGENT_COLOR_PALETTE, AGENT_DEFAULT_AVATARS } from '@/lib/constants/agent-defaults';
+import { inferLanguageDirective } from '@/lib/generation/language-inference';
 
 const log = createLogger('Classroom');
 
@@ -37,6 +38,10 @@ export interface GenerateClassroomInput {
   requirement: string;
   pdfContent?: { text: string; images: string[] };
   language?: string;
+  /** User's self-description from profile (used for language inference) */
+  userBio?: string;
+  /** Browser locale from navigator.language (used for language inference fallback) */
+  browserLocale?: string;
   enableWebSearch?: boolean;
   enableImageGeneration?: boolean;
   enableVideoGeneration?: boolean;
@@ -227,13 +232,31 @@ export async function generateClassroom(
   };
   const pdfText = pdfContent?.text || undefined;
 
-  // Resolve agents based on agentMode
+  // Step 1: Infer language directive (standalone, before all generation steps)
+  let languageDirective: string | undefined;
+  try {
+    languageDirective = await inferLanguageDirective(
+      {
+        requirement,
+        pdfTextSample: pdfText?.slice(0, 200),
+        userBio: input.userBio,
+        appLocale: input.browserLocale,
+      },
+      languageModel,
+    );
+    log.info(`Language directive inferred: "${languageDirective}"`);
+  } catch (e) {
+    log.warn('Language inference failed, continuing without directive:', e);
+  }
+
+  // Step 2: Resolve agents (uses language directive for agent names/personas)
   let agents: AgentInfo[];
   const agentMode = input.agentMode || 'default';
   if (agentMode === 'generate') {
     log.info('Generating custom agent profiles via LLM...');
+    const agentLang = languageDirective || lang;
     try {
-      agents = await generateAgentProfiles(requirement, lang, aiCall);
+      agents = await generateAgentProfiles(requirement, agentLang, aiCall);
       log.info(`Generated ${agents.length} agent profiles`);
     } catch (e) {
       log.warn('Agent profile generation failed, falling back to defaults:', e);
@@ -251,21 +274,19 @@ export async function generateClassroom(
     scenesGenerated: 0,
   });
 
-  // Web search (optional, graceful degradation)
+  // Step 3: Web search (optional)
   let researchContext: string | undefined;
   if (input.enableWebSearch) {
     const tavilyKey = resolveWebSearchApiKey();
     if (tavilyKey) {
       try {
         const searchQuery = await buildSearchQuery(requirement, pdfText, searchQueryAiCall);
-
         log.info('Running web search for classroom generation', {
           hasPdfContext: searchQuery.hasPdfContext,
           rawRequirementLength: searchQuery.rawRequirementLength,
           rewriteAttempted: searchQuery.rewriteAttempted,
           finalQueryLength: searchQuery.finalQueryLength,
         });
-
         const searchResult = await searchWithTavily({
           query: searchQuery.query,
           apiKey: tavilyKey,
@@ -289,6 +310,7 @@ export async function generateClassroom(
     scenesGenerated: 0,
   });
 
+  // Step 4: Generate outlines (uses language directive)
   const outlinesResult = await generateSceneOutlinesFromRequirements(
     requirements,
     pdfText,
@@ -300,6 +322,7 @@ export async function generateClassroom(
       videoGenerationEnabled: input.enableVideoGeneration,
       researchContext,
       teacherContext,
+      languageDirective,
     },
   );
 
@@ -325,6 +348,7 @@ export async function generateClassroom(
     name: outlines[0]?.title || requirement.slice(0, 50),
     description: undefined,
     language: lang,
+    languageDirective,
     style: 'interactive',
     createdAt: Date.now(),
     updatedAt: Date.now(),

@@ -2,6 +2,7 @@
 import type { Slide } from '@/lib/types/slides';
 import type { Action } from '@/lib/types/action';
 import type { PBLProjectConfig } from '@/lib/pbl/types';
+import type { LanguageDirective } from '@/lib/types/language-directive';
 
 export type SceneType = 'slide' | 'quiz' | 'interactive' | 'pbl';
 
@@ -20,6 +21,8 @@ export interface Stage {
   updatedAt: number;
   // Stage metadata
   language?: string;
+  /** LLM-inferred language directive (replaces single language enum for new classrooms) */
+  languageDirective?: LanguageDirective;
   style?: string;
   // Whiteboard data
   whiteboard?: Whiteboard[];

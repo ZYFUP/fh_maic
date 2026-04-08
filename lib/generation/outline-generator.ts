@@ -11,6 +11,7 @@ import type {
   PdfImage,
   ImageMapping,
 } from '@/lib/types/generation';
+import type { LanguageDirective } from '@/lib/types/language-directive';
 import { buildPrompt, PROMPT_IDS } from './prompts';
 import { formatImageDescription, formatImagePlaceholder } from './prompt-formatters';
 import { parseJsonResponse } from './json-repair';
@@ -20,8 +21,8 @@ import { createLogger } from '@/lib/logger';
 const log = createLogger('Generation');
 
 /**
- * Generate scene outlines from user requirements
- * Now uses simplified UserRequirements with just requirement text and language
+ * Generate scene outlines from user requirements.
+ * Accepts a pre-computed languageDirective to inject into the prompt.
  */
 export async function generateSceneOutlinesFromRequirements(
   requirements: UserRequirements,
@@ -36,16 +37,16 @@ export async function generateSceneOutlinesFromRequirements(
     videoGenerationEnabled?: boolean;
     researchContext?: string;
     teacherContext?: string;
+    /** Pre-computed language directive to inject into the prompt */
+    languageDirective?: LanguageDirective;
   },
 ): Promise<GenerationResult<SceneOutline[]>> {
   // Build available images description for the prompt
-  let availableImagesText =
-    requirements.language === 'zh-CN' ? '无可用图片' : 'No images available';
+  let availableImagesText = 'No images available';
   let visionImages: Array<{ id: string; src: string }> | undefined;
 
   if (pdfImages && pdfImages.length > 0) {
     if (options?.visionEnabled && options?.imageMapping) {
-      // Vision mode: split into vision images (first N) and text-only (rest)
       const allWithSrc = pdfImages.filter((img) => options.imageMapping![img.id]);
       const visionSlice = allWithSrc.slice(0, MAX_VISION_IMAGES);
       const textOnlySlice = allWithSrc.slice(MAX_VISION_IMAGES);
@@ -66,7 +67,6 @@ export async function generateSceneOutlinesFromRequirements(
         height: img.height,
       }));
     } else {
-      // Text-only mode: full descriptions
       availableImagesText = pdfImages
         .map((img) => formatImageDescription(img, requirements.language))
         .join('\n');
@@ -94,22 +94,19 @@ export async function generateSceneOutlinesFromRequirements(
       '**IMPORTANT: Do NOT include any video mediaGenerations (type: "video") in the outlines. Video generation is disabled. Image generation is allowed.**';
   }
 
-  // Use simplified prompt variables
+  // Build language directive for prompt injection
+  const languageDirectiveText = options?.languageDirective
+    ? options.languageDirective
+    : `Language: ${requirements.language}`;
+
   const prompts = buildPrompt(PROMPT_IDS.REQUIREMENTS_TO_OUTLINES, {
-    // New simplified variables
     requirement: requirements.requirement,
-    language: requirements.language,
-    pdfContent: pdfText
-      ? pdfText.substring(0, MAX_PDF_CONTENT_CHARS)
-      : requirements.language === 'zh-CN'
-        ? '无'
-        : 'None',
+    languageDirective: languageDirectiveText,
+    pdfContent: pdfText ? pdfText.substring(0, MAX_PDF_CONTENT_CHARS) : 'None',
     availableImages: availableImagesText,
     userProfile: userProfileText,
     mediaGenerationPolicy,
-    researchContext:
-      options?.researchContext || (requirements.language === 'zh-CN' ? '无' : 'None'),
-    // Server-side generation populates this via options; client-side populates via formatTeacherPersonaForPrompt
+    researchContext: options?.researchContext || 'None',
     teacherContext: options?.teacherContext || '',
   });
 

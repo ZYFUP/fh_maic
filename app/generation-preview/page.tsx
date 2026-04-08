@@ -34,7 +34,7 @@ const log = createLogger('GenerationPreview');
 
 function GenerationPreviewContent() {
   const router = useRouter();
-  const { t } = useI18n();
+  const { t, locale } = useI18n();
   const hasStartedRef = useRef(false);
   const abortControllerRef = useRef<AbortController | null>(null);
 
@@ -371,6 +371,32 @@ function GenerationPreviewContent() {
         updatedAt: Date.now(),
       };
 
+      // ── Step 0: Infer language directive (before all generation) ──
+      let languageDirective: string | undefined;
+      try {
+        const ldResp = await fetch('/api/generate/language-directive', {
+          method: 'POST',
+          headers: getApiHeaders(),
+          body: JSON.stringify({
+            requirement: currentSession.requirements.requirement,
+            pdfTextSample: currentSession.pdfText?.slice(0, 200),
+            userBio: currentSession.requirements.userBio,
+            appLocale: locale,
+          }),
+          signal,
+        });
+        if (ldResp.ok) {
+          const ldData = await ldResp.json();
+          if (ldData.success && ldData.data?.directive) {
+            languageDirective = ldData.data.directive;
+            stage.languageDirective = languageDirective;
+            log.debug(`Language directive: "${languageDirective}"`);
+          }
+        }
+      } catch (e) {
+        log.warn('Language directive inference failed, continuing without:', e);
+      }
+
       if (settings.agentMode === 'auto') {
         const agentStepIdx = activeSteps.findIndex((s) => s.id === 'agent-generation');
         if (agentStepIdx >= 0) setCurrentStepIndex(agentStepIdx);
@@ -444,7 +470,8 @@ function GenerationPreviewContent() {
             headers: getApiHeaders(),
             body: JSON.stringify({
               stageInfo: { name: stage.name, description: stage.description },
-              language: currentSession.requirements.language || 'zh-CN',
+              language:
+                languageDirective || locale || currentSession.requirements.language || 'zh-CN',
               availableAvatars: allAvatars.map((a) => a.path),
               avatarDescriptions: allAvatars.map((a) => ({ path: a.path, desc: a.desc })),
               availableVoices: getAvailableVoicesForGeneration(),
@@ -538,6 +565,7 @@ function GenerationPreviewContent() {
               imageMapping,
               researchContext: currentSession.researchContext,
               agents,
+              languageDirective,
             }),
             signal,
           })

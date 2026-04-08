@@ -20,6 +20,8 @@ export async function POST(req: NextRequest) {
       requirement: rawBody.requirement || '',
       ...(rawBody.pdfContent ? { pdfContent: rawBody.pdfContent } : {}),
       ...(rawBody.language ? { language: rawBody.language } : {}),
+      ...(rawBody.userBio ? { userBio: rawBody.userBio } : {}),
+      ...(rawBody.browserLocale ? { browserLocale: rawBody.browserLocale } : {}),
       ...(rawBody.enableWebSearch != null ? { enableWebSearch: rawBody.enableWebSearch } : {}),
       ...(rawBody.enableImageGeneration != null
         ? { enableImageGeneration: rawBody.enableImageGeneration }

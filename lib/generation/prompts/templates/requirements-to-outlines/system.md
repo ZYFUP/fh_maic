@@ -296,6 +296,6 @@ You must output a JSON array where each element is a scene outline object:
 5. Arrange appropriate number of scenes based on inferred duration (typically 1-2 scenes per minute)
 6. Insert quizzes at appropriate points for knowledge checks
 7. Use interactive scenes sparingly (max 1-2 per course) and only when the concept truly benefits from hands-on interaction
-8. **Language Requirement**: Strictly output all content in the language specified by the user
+8. **Language Requirement**: Infer the appropriate language from context and output all content in the inferred teachingLanguage. Follow the terminologyStrategy for handling domain terms.
 9. Regardless of information completeness, always output conforming JSON - do not ask questions or request more information
 10. **No teacher identity on slides**: Scene titles and keyPoints must be neutral and topic-focused. Never include the teacher's name or role (e.g., avoid "Teacher Wang's Tips", "Teacher's Wishes"). Use generic labels like "Tips", "Summary", "Key Takeaways" instead.
