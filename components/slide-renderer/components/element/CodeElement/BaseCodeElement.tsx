@@ -366,6 +366,33 @@ function CodeLineRow({
 
 export function BaseCodeElement({ elementInfo, animate }: BaseCodeElementProps) {
   const { language, lines, fileName, showLineNumbers = true, fontSize = 14 } = elementInfo;
+  const codeBodyRef = useRef<HTMLDivElement>(null);
+
+  // Prevent wheel events from bubbling to the whiteboard zoom handler
+  // when the code body has scrollable content in the wheel direction.
+  useEffect(() => {
+    const el = codeBodyRef.current;
+    if (!el) return;
+
+    const handleWheel = (e: WheelEvent) => {
+      const { scrollTop, scrollHeight, clientHeight } = el;
+      const canScroll = scrollHeight > clientHeight;
+      if (!canScroll) return; // nothing to scroll — let whiteboard zoom
+
+      const atTop = scrollTop <= 0;
+      const atBottom = scrollTop + clientHeight >= scrollHeight - 1;
+      const scrollingUp = e.deltaY < 0;
+      const scrollingDown = e.deltaY > 0;
+
+      // At scroll limits, let the event propagate for whiteboard zoom
+      if ((atTop && scrollingUp) || (atBottom && scrollingDown)) return;
+
+      e.stopPropagation();
+    };
+
+    el.addEventListener('wheel', handleWheel, { passive: true });
+    return () => el.removeEventListener('wheel', handleWheel);
+  }, []);
 
   // eslint-disable-next-line @typescript-eslint/no-explicit-any
   const [highlighter, setHighlighter] = useState<any>(null);
@@ -540,6 +567,7 @@ export function BaseCodeElement({ elementInfo, animate }: BaseCodeElementProps) 
 
           {/* Code body */}
           <div
+            ref={codeBodyRef}
             className="flex-1 overflow-auto py-2"
             style={{
               background: '#fafbfc',
