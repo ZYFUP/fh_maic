@@ -873,5 +873,9 @@
     "voice": "ボイス",
     "speed": "速度",
     "language": "言語"
+  },
+  "code": {
+    "untitled": "無題",
+    "lines": "行"
   }
 }

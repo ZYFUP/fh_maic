@@ -873,5 +873,9 @@
     "voice": "音色",
     "speed": "语速",
     "language": "语言"
+  },
+  "code": {
+    "untitled": "未命名",
+    "lines": "行"
   }
 }
