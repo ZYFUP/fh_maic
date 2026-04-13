@@ -35,7 +35,6 @@ const log = createLogger('Classroom');
 export interface GenerateClassroomInput {
   requirement: string;
   pdfContent?: { text: string; images: string[] };
-  language?: string;
   enableWebSearch?: boolean;
   enableImageGeneration?: boolean;
   enableVideoGeneration?: boolean;

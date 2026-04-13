@@ -215,7 +215,6 @@ export async function POST(req: NextRequest) {
       mediaGenerationPolicy,
       teacherContext,
       userProfile: userProfileText,
-      pdfLanguageSample: pdfText?.substring(0, 200) || '',
     });
 
     if (!prompts) {

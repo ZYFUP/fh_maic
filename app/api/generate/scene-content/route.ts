@@ -45,7 +45,6 @@ export async function POST(req: NextRequest) {
       stageInfo: {
         name: string;
         description?: string;
-        language?: string;
         style?: string;
       };
       stageId: string;

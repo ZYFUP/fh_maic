@@ -44,7 +44,6 @@ export async function saveStageData(stageId: string, data: StageStoreData): Prom
       description: data.stage.description,
       createdAt: data.stage.createdAt || now,
       updatedAt: now,
-      language: data.stage.language,
       style: data.stage.style,
       currentSceneId: data.currentSceneId || undefined,
       agentIds: data.stage.agentIds,
