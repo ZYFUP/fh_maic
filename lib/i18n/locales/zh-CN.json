@@ -34,7 +34,22 @@
     "resourcePackDesc": "PPTX + 交互式页面",
     "exporting": "正在导出...",
     "exportSuccess": "导出成功",
-    "exportFailed": "导出失败"
+    "exportFailed": "导出失败",
+    "classroomZip": "导出课堂 ZIP",
+    "classroomZipDesc": "课程结构 + 媒体文件"
+  },
+  "import": {
+    "classroom": "导入课堂",
+    "parsing": "正在解析 ZIP...",
+    "validating": "正在验证数据...",
+    "writingMedia": "正在写入媒体文件...",
+    "writingCourse": "正在写入课程数据...",
+    "success": "课堂导入成功",
+    "error": {
+      "invalidZip": "无效文件，请选择有效的 .maic.zip 文件。",
+      "invalidManifest": "无效课堂文件：manifest.json 缺失或已损坏。",
+      "missingData": "无效课堂文件：缺少必需的课程数据。"
+    }
   },
   "chat": {
     "lecture": "授课",

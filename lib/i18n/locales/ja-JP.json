@@ -34,7 +34,22 @@
     "resourcePackDesc": "PPTX＋インタラクティブページ",
     "exporting": "エクスポート中...",
     "exportSuccess": "エクスポートが完了しました",
-    "exportFailed": "エクスポートに失敗しました"
+    "exportFailed": "エクスポートに失敗しました",
+    "classroomZip": "教室ZIPをエクスポート",
+    "classroomZipDesc": "コース構造 + メディアファイル"
+  },
+  "import": {
+    "classroom": "教室をインポート",
+    "parsing": "ZIP を解析中...",
+    "validating": "データを検証中...",
+    "writingMedia": "メディアファイルを書き込み中...",
+    "writingCourse": "コースデータを書き込み中...",
+    "success": "教室のインポートが完了しました",
+    "error": {
+      "invalidZip": "無効なファイルです。有効な .maic.zip ファイルを選択してください。",
+      "invalidManifest": "無効な教室ファイル：manifest.json が見つからないか破損しています。",
+      "missingData": "無効な教室ファイル：必要なコースデータが不足しています。"
+    }
   },
   "chat": {
     "lecture": "講義",

@@ -34,7 +34,22 @@
     "resourcePackDesc": "PPTX + interactive pages",
     "exporting": "Exporting...",
     "exportSuccess": "Export successful",
-    "exportFailed": "Export failed"
+    "exportFailed": "Export failed",
+    "classroomZip": "Export Classroom ZIP",
+    "classroomZipDesc": "Course structure + media files"
+  },
+  "import": {
+    "classroom": "Import Classroom",
+    "parsing": "Parsing ZIP...",
+    "validating": "Validating data...",
+    "writingMedia": "Writing media files...",
+    "writingCourse": "Writing course data...",
+    "success": "Classroom imported successfully",
+    "error": {
+      "invalidZip": "Invalid file. Please select a valid .maic.zip file.",
+      "invalidManifest": "Invalid classroom file: manifest.json is missing or corrupted.",
+      "missingData": "Invalid classroom file: missing required course data."
+    }
   },
   "chat": {
     "lecture": "Lecture",
