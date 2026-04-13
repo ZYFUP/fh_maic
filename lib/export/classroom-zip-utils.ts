@@ -1,19 +1,8 @@
-import { nanoid } from 'nanoid';
 import type { Action, SpeechAction } from '@/lib/types/action';
 import type { ManifestAction } from './classroom-zip-types';
 import { db } from '@/lib/utils/database';
 import type { AudioFileRecord, MediaFileRecord } from '@/lib/utils/database';
 import type { Scene } from '@/lib/types/stage';
-
-// ─── ID Remapping ─────────────────────────────────────────────
-
-export function buildIdMap(oldKeys: string[]): Record<string, string> {
-  const map: Record<string, string> = {};
-  for (const key of oldKeys) {
-    map[key] = nanoid();
-  }
-  return map;
-}
 
 // ─── Export: Collect Media ─────────────────────────────────────
 

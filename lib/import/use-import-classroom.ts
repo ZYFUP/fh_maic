@@ -43,6 +43,12 @@ export function useImportClassroom(onSuccess?: () => void) {
       const toastId = toast.loading(t('import.parsing'));
 
       try {
+        // 0. Size check — warn for files over 200MB
+        const MAX_SAFE_SIZE = 200 * 1024 * 1024;
+        if (file.size > MAX_SAFE_SIZE) {
+          log.warn(`Large ZIP file: ${(file.size / 1024 / 1024).toFixed(0)}MB`);
+        }
+
         // 1. Parse ZIP
         const JSZip = (await import('jszip')).default;
         const zip = await JSZip.loadAsync(file);
@@ -135,15 +141,15 @@ export function useImportClassroom(onSuccess?: () => void) {
             params: '',
             createdAt: now,
           };
-          await db.mediaFiles.put(record);
 
-          // Check for poster
+          // Check for poster before writing to avoid redundant put
           const posterPath = zipPath.replace(/\.\w+$/, '.poster.jpg');
           const posterEntry = zip.file(posterPath);
           if (posterEntry) {
             record.poster = await posterEntry.async('blob');
-            await db.mediaFiles.put(record);
           }
+
+          await db.mediaFiles.put(record);
         }
 
         // 5. Write course data
@@ -219,7 +225,10 @@ export function useImportClassroom(onSuccess?: () => void) {
         onSuccess?.();
       } catch (error) {
         log.error('Classroom ZIP import failed:', error);
-        toast.error(t('import.error.invalidZip'), { id: toastId });
+        const isQuotaError = error instanceof DOMException && error.name === 'QuotaExceededError';
+        toast.error(isQuotaError ? t('import.error.storageFull') : t('import.error.invalidZip'), {
+          id: toastId,
+        });
       } finally {
         setImporting(false);
         setPhase('idle');

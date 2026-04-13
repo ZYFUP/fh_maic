@@ -48,7 +48,8 @@
     "error": {
       "invalidZip": "Invalid file. Please select a valid .maic.zip file.",
       "invalidManifest": "Invalid classroom file: manifest.json is missing or corrupted.",
-      "missingData": "Invalid classroom file: missing required course data."
+      "missingData": "Invalid classroom file: missing required course data.",
+      "storageFull": "Import failed: browser storage is full. Try clearing old classrooms."
     }
   },
   "chat": {

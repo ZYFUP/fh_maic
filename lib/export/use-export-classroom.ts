@@ -8,6 +8,7 @@ import { useI18n } from '@/lib/hooks/use-i18n';
 import { getGeneratedAgentsByStageId } from '@/lib/utils/database';
 import {
   CLASSROOM_ZIP_FORMAT_VERSION,
+  CLASSROOM_ZIP_EXTENSION,
   type ClassroomManifest,
   type ManifestStage,
   type ManifestAgent,
@@ -144,12 +145,10 @@ export function useExportClassroom() {
       }
 
       // 7. Assemble manifest
-      // eslint-disable-next-line @typescript-eslint/no-require-imports
-      const appVersion: string = require('../../../package.json').version ?? '0.1.0';
       const manifest: ClassroomManifest = {
         formatVersion: CLASSROOM_ZIP_FORMAT_VERSION,
         exportedAt: new Date().toISOString(),
-        appVersion,
+        appVersion: process.env.npm_package_version || '0.0.0',
         stage: manifestStage,
         agents: manifestAgents,
         scenes: manifestScenes,
@@ -172,7 +171,7 @@ export function useExportClassroom() {
       // 9. Generate and download
       const zipBlob = await zip.generateAsync({ type: 'blob' });
       const safeName = stage.name.replace(/[\\/:*?"<>|]/g, '_') || 'classroom';
-      saveAs(zipBlob, `${safeName}.maic.zip`);
+      saveAs(zipBlob, `${safeName}${CLASSROOM_ZIP_EXTENSION}`);
 
       toast.success(t('export.exportSuccess'), { id: toastId });
     } catch (error) {

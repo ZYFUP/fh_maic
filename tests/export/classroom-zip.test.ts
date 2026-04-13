@@ -1,34 +1,10 @@
 import { describe, test, expect } from 'vitest';
-import {
-  buildIdMap,
-  rewriteAudioRefsToIds,
-  actionsToManifest,
-} from '@/lib/export/classroom-zip-utils';
+import { rewriteAudioRefsToIds, actionsToManifest } from '@/lib/export/classroom-zip-utils';
 import {
   CLASSROOM_ZIP_FORMAT_VERSION,
   type ClassroomManifest,
 } from '@/lib/export/classroom-zip-types';
 import type { SpeechAction, SpotlightAction } from '@/lib/types/action';
-
-// ─── buildIdMap ───────────────────────────────────────────────
-
-describe('buildIdMap', () => {
-  test('generates unique new IDs for each old key', () => {
-    const oldKeys = ['audio/abc.mp3', 'audio/def.mp3', 'media/img1.png'];
-    const map = buildIdMap(oldKeys);
-    expect(Object.keys(map)).toHaveLength(3);
-    for (const val of Object.values(map)) {
-      expect(val).toBeTruthy();
-      expect(typeof val).toBe('string');
-    }
-    const values = Object.values(map);
-    expect(new Set(values).size).toBe(values.length);
-  });
-
-  test('returns empty map for empty input', () => {
-    expect(buildIdMap([])).toEqual({});
-  });
-});
 
 // ─── rewriteAudioRefsToIds ────────────────────────────────────
 
