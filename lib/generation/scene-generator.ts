@@ -312,11 +312,7 @@ export async function generateSceneContent(
     }
 
     // Route to widget generation (handles all 5 types)
-    return generateWidgetContent(
-      outline,
-      aiCall,
-      (languageDirective || 'zh-CN') as 'zh-CN' | 'en-US',
-    );
+    return generateWidgetContent(outline, aiCall, languageDirective);
   }
 
   switch (outline.type) {
@@ -329,11 +325,12 @@ export async function generateSceneContent(
         visionEnabled,
         generatedMediaMapping,
         agents,
+        languageDirective,
       );
     case 'quiz':
-      return generateQuizContent(outline, aiCall);
+      return generateQuizContent(outline, aiCall, languageDirective);
     case 'pbl':
-      return generatePBLSceneContent(outline, languageModel);
+      return generatePBLSceneContent(outline, languageModel, languageDirective);
     default:
       return null;
   }
@@ -604,6 +601,7 @@ async function generateSlideContent(
   visionEnabled?: boolean,
   generatedMediaMapping?: ImageMapping,
   agents?: AgentInfo[],
+  languageDirective?: string,
 ): Promise<GeneratedSlideContent | null> {
   // Build assigned images description for the prompt
   let assignedImagesText = '无可用图片，禁止插入任何 image 元素';
@@ -678,6 +676,7 @@ async function generateSlideContent(
     canvas_width: canvasWidth,
     canvas_height: canvasHeight,
     teacherContext,
+    languageDirective: languageDirective || '',
   });
 
   if (!prompts) {
@@ -766,6 +765,7 @@ async function generateSlideContent(
 async function generateQuizContent(
   outline: SceneOutline,
   aiCall: AICallFn,
+  languageDirective?: string,
 ): Promise<GeneratedQuizContent | null> {
   const quizConfig = outline.quizConfig || {
     questionCount: 3,
@@ -780,6 +780,7 @@ async function generateQuizContent(
     questionCount: quizConfig.questionCount,
     difficulty: quizConfig.difficulty,
     questionTypes: quizConfig.questionTypes.join(', '),
+    languageDirective: languageDirective || '',
   });
 
   if (!prompts) {
@@ -867,6 +868,7 @@ function normalizeQuizAnswer(question: Record<string, unknown>): string[] | unde
 async function generatePBLSceneContent(
   outline: SceneOutline,
   languageModel?: LanguageModel,
+  languageDirective?: string,
 ): Promise<GeneratedPBLContent | null> {
   if (!languageModel) {
     log.error('LanguageModel required for PBL generation');
@@ -888,7 +890,8 @@ async function generatePBLSceneContent(
         projectDescription: pblConfig.projectDescription,
         targetSkills: pblConfig.targetSkills,
         issueCount: pblConfig.issueCount,
-        languageDirective: 'Teach in the language that matches the user requirement.',
+        languageDirective:
+          languageDirective || 'Teach in the language that matches the user requirement.',
       },
       languageModel,
       {
@@ -951,7 +954,7 @@ function extractHtml(response: string): string | null {
 async function generateWidgetContent(
   outline: SceneOutline,
   aiCall: AICallFn,
-  language: 'zh-CN' | 'en-US',
+  languageDirective?: string,
 ): Promise<GeneratedInteractiveContent | null> {
   const widgetType = outline.widgetType;
   const widgetOutline = outline.widgetOutline;
@@ -974,7 +977,7 @@ async function generateWidgetContent(
         keyPoints: (outline.keyPoints || []).join('\n'),
         variables: widgetOutline.keyVariables?.join(', ') || '',
         designIdea: '',
-        language,
+        languageDirective: languageDirective || '',
       };
       break;
 
@@ -985,7 +988,7 @@ async function generateWidgetContent(
         diagramType: widgetOutline.diagramType || 'flowchart',
         description: outline.description,
         keyPoints: (outline.keyPoints || []).join('\n'),
-        language,
+        languageDirective: languageDirective || '',
       };
       break;
 
@@ -999,7 +1002,7 @@ async function generateWidgetContent(
         starterCode: '',
         testCases: '', // AI generates appropriate test cases based on challenge
         hints: '', // AI generates progressive hints based on challenge
-        language,
+        languageDirective: languageDirective || '',
       };
       break;
 
@@ -1011,7 +1014,7 @@ async function generateWidgetContent(
         description: outline.description,
         keyPoints: (outline.keyPoints || []).join('\n'),
         scoring: { correctPoints: 10, speedBonus: 5 },
-        language,
+        languageDirective: languageDirective || '',
       };
       break;
 
@@ -1024,7 +1027,7 @@ async function generateWidgetContent(
         keyPoints: (outline.keyPoints || []).join('\n'),
         objects: widgetOutline.objects || [],
         interactions: widgetOutline.interactions || [],
-        language,
+        languageDirective: languageDirective || '',
       };
       break;
 
@@ -1057,7 +1060,7 @@ async function generateWidgetContent(
     outline,
     widgetConfig,
     aiCall,
-    language,
+    languageDirective,
   );
   log.info(
     `[Ultra Mode] Generated ${teacherActions?.length || 0} teacher actions for "${outline.title}" (${widgetType})`,
@@ -1100,14 +1103,14 @@ async function generateWidgetTeacherActions(
   outline: SceneOutline,
   widgetConfig: WidgetConfig | undefined,
   aiCall: AICallFn,
-  language: 'zh-CN' | 'en-US',
+  languageDirective?: string,
 ): Promise<TeacherAction[] | undefined> {
   const prompts = buildPrompt(PROMPT_IDS.WIDGET_TEACHER_ACTIONS, {
     widgetType,
     description: outline.description,
     keyPoints: (outline.keyPoints || []).join('\n'),
     widgetConfig: JSON.stringify(widgetConfig || {}),
-    language,
+    languageDirective: languageDirective || '',
   });
 
   if (!prompts) return undefined;
@@ -1167,6 +1170,7 @@ export async function generateSceneActions(
       courseContext: buildCourseContext(ctx),
       agents: agentsText,
       userProfile: userProfile || '',
+      languageDirective: languageDirective || '',
     });
 
     if (!prompts) {
@@ -1195,6 +1199,7 @@ export async function generateSceneActions(
       questions: questionsText,
       courseContext: buildCourseContext(ctx),
       agents: agentsText,
+      languageDirective: languageDirective || '',
     });
 
     if (!prompts) {
@@ -1222,6 +1227,7 @@ export async function generateSceneActions(
       designIdea: config?.designIdea || '',
       courseContext: buildCourseContext(ctx),
       agents: agentsText,
+      languageDirective: languageDirective || '',
     });
 
     if (!prompts) {
@@ -1249,6 +1255,7 @@ export async function generateSceneActions(
       projectDescription: pblConfig?.projectDescription || outline.description,
       courseContext: buildCourseContext(ctx),
       agents: agentsText,
+      languageDirective: languageDirective || '',
     });
 
     if (!prompts) {
