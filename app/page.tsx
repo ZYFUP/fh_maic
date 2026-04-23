@@ -1,6 +1,6 @@
 'use client';
 
-import { useState, useEffect, useRef } from 'react';
+import { useState, useEffect, useMemo, useRef } from 'react';
 import { useRouter } from 'next/navigation';
 import { motion, AnimatePresence } from 'motion/react';
 import {
@@ -12,6 +12,7 @@ import {
   ImagePlus,
   Pencil,
   Trash2,
+  Search,
   Settings,
   Sun,
   Moon,
@@ -21,11 +22,17 @@ import {
   Upload,
   Sparkles,
   Atom,
+  X,
 } from 'lucide-react';
 import { useI18n } from '@/lib/hooks/use-i18n';
 import { LanguageSwitcher } from '@/components/language-switcher';
 import { createLogger } from '@/lib/logger';
 import { Button } from '@/components/ui/button';
+import {
+  InputGroup,
+  InputGroupInput,
+  InputGroupButton,
+} from '@/components/ui/input-group';
 import { Textarea as UITextarea } from '@/components/ui/textarea';
 import { cn } from '@/lib/utils';
 import { SettingsDialog } from '@/components/settings';
@@ -129,6 +136,10 @@ function HomePage() {
   const [classrooms, setClassrooms] = useState<StageListItem[]>([]);
   const [thumbnails, setThumbnails] = useState<Record<string, Slide>>({});
   const [pendingDeleteId, setPendingDeleteId] = useState<string | null>(null);
+  const [searchOpen, setSearchOpen] = useState(false);
+  const [searchQuery, setSearchQuery] = useState('');
+  const searchInputRef = useRef<HTMLInputElement>(null);
+  const searchButtonRef = useRef<HTMLButtonElement>(null);
   const toolbarRef = useRef<HTMLDivElement>(null);
   const textareaRef = useRef<HTMLTextAreaElement>(null);
 
@@ -200,6 +211,16 @@ function HomePage() {
       toast.error(t('classroom.renameFailed'));
     }
   };
+
+  const filteredClassrooms = useMemo(() => {
+    const q = searchQuery.trim().toLowerCase();
+    if (!q) return classrooms;
+    return classrooms.filter((c) => {
+      const name = c.name?.toLowerCase() ?? '';
+      const desc = c.description?.toLowerCase() ?? '';
+      return name.includes(q) || desc.includes(q);
+    });
+  }, [classrooms, searchQuery]);
 
   const updateForm = <K extends keyof FormState>(field: K, value: FormState[K]) => {
     setForm((prev) => ({ ...prev, [field]: value }));
