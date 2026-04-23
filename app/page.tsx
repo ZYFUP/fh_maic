@@ -97,6 +97,14 @@ function HomePage() {
   // Model setup state
   const currentModelId = useSettingsStore((s) => s.modelId);
   const [recentOpen, setRecentOpen] = useState(true);
+  const persistRecentOpen = (next: boolean) => {
+    setRecentOpen(next);
+    try {
+      localStorage.setItem(RECENT_OPEN_STORAGE_KEY, String(next));
+    } catch {
+      /* ignore */
+    }
+  };
 
   // Hydrate client-only state after mount (avoids SSR mismatch)
   /* eslint-disable react-hooks/set-state-in-effect -- Hydration from localStorage must happen in effect */
@@ -648,15 +656,7 @@ function HomePage() {
             <div className="flex-1 h-px bg-border/40 group-hover:bg-border/70 transition-colors" />
             <div className="shrink-0 flex items-center gap-3 text-[13px] text-muted-foreground/60 select-none">
               <button
-                onClick={() => {
-                  const next = !recentOpen;
-                  setRecentOpen(next);
-                  try {
-                    localStorage.setItem(RECENT_OPEN_STORAGE_KEY, String(next));
-                  } catch {
-                    /* ignore */
-                  }
-                }}
+                onClick={() => persistRecentOpen(!recentOpen)}
                 className="flex items-center gap-2 hover:text-foreground/70 transition-colors cursor-pointer"
               >
                 <Clock className="size-3.5" />
@@ -680,14 +680,7 @@ function HomePage() {
                     aria-label={t('classroom.searchAriaLabel')}
                     onClick={() => {
                       setSearchOpen(true);
-                      if (!recentOpen) {
-                        setRecentOpen(true);
-                        try {
-                          localStorage.setItem(RECENT_OPEN_STORAGE_KEY, 'true');
-                        } catch {
-                          /* ignore */
-                        }
-                      }
+                      if (!recentOpen) persistRecentOpen(true);
                       requestAnimationFrame(() => searchInputRef.current?.focus());
                     }}
                     initial={{ opacity: 0 }}
