@@ -111,4 +111,3 @@ export function buildPrompt(
     user: interpolateVariables(prompt.userPromptTemplate, variables),
   };
 }
-

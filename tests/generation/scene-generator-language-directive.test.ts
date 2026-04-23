@@ -10,10 +10,7 @@
  */
 import { describe, expect, it, vi, afterEach } from 'vitest';
 
-import {
-  generateSceneContent,
-  generateSceneActions,
-} from '@/lib/generation/scene-generator';
+import { generateSceneContent, generateSceneActions } from '@/lib/generation/scene-generator';
 import type { AICallFn } from '@/lib/generation/pipeline-types';
 import type {
   SceneOutline,
@@ -114,12 +111,9 @@ describe('scene-generator language directive threading (issue #472)', () => {
         remark: '',
       };
 
-      await generateSceneActions(
-        baseOutline({ type: 'slide' }),
-        content,
-        aiCall,
-        { languageDirective: DIRECTIVE },
-      );
+      await generateSceneActions(baseOutline({ type: 'slide' }), content, aiCall, {
+        languageDirective: DIRECTIVE,
+      });
 
       expect(lastUser()).toContain(DIRECTIVE);
       expect(lastUser()).not.toContain('{{languageDirective}}');
@@ -140,12 +134,9 @@ describe('scene-generator language directive threading (issue #472)', () => {
         ],
       };
 
-      await generateSceneActions(
-        baseOutline({ type: 'quiz' }),
-        content,
-        aiCall,
-        { languageDirective: DIRECTIVE },
-      );
+      await generateSceneActions(baseOutline({ type: 'quiz' }), content, aiCall, {
+        languageDirective: DIRECTIVE,
+      });
 
       expect(lastUser()).toContain(DIRECTIVE);
       expect(lastUser()).not.toContain('{{languageDirective}}');
@@ -158,12 +149,9 @@ describe('scene-generator language directive threading (issue #472)', () => {
         // No widgetType/teacherActions so we hit the normal actions path
       };
 
-      await generateSceneActions(
-        baseOutline({ type: 'interactive' }),
-        content,
-        aiCall,
-        { languageDirective: DIRECTIVE },
-      );
+      await generateSceneActions(baseOutline({ type: 'interactive' }), content, aiCall, {
+        languageDirective: DIRECTIVE,
+      });
 
       expect(lastUser()).toContain(DIRECTIVE);
       expect(lastUser()).not.toContain('{{languageDirective}}');
