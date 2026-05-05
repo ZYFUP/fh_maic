@@ -180,7 +180,9 @@ export function ImageSettings({ selectedProviderId }: ImageSettingsProps) {
             variant="outline"
             size="sm"
             onClick={handleTest}
-            disabled={testLoading || (requiresApiKey && !currentConfig?.apiKey && !isServerConfigured)}
+            disabled={
+              testLoading || (requiresApiKey && !currentConfig?.apiKey && !isServerConfigured)
+            }
             className="gap-1.5"
           >
             {testLoading ? (

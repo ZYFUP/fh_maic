@@ -414,6 +414,7 @@ const getDefaultWebSearchConfig = () => ({
   webSearchProviderId: 'tavily' as WebSearchProviderId,
   webSearchProvidersConfig: {
     tavily: { apiKey: '', baseUrl: '', enabled: true },
+    bocha: { apiKey: '', baseUrl: '', enabled: true },
   } as Record<WebSearchProviderId, { apiKey: string; baseUrl: string; enabled: boolean }>,
 });
 
@@ -585,6 +586,21 @@ function ensureBuiltInVideoProviders(state: Partial<SettingsState>): void {
     const providerId = pid as VideoProviderId;
     if (!state.videoProvidersConfig![providerId]) {
       state.videoProvidersConfig![providerId] = defaultConfig[providerId];
+    }
+  });
+}
+
+/**
+ * Ensure webSearchProvidersConfig includes all built-in web search providers.
+ * Called on every rehydrate so newly added providers appear automatically.
+ */
+function ensureBuiltInWebSearchProviders(state: Partial<SettingsState>): void {
+  if (!state.webSearchProvidersConfig) return;
+  const defaultConfig = getDefaultWebSearchConfig().webSearchProvidersConfig;
+  Object.keys(WEB_SEARCH_PROVIDERS).forEach((pid) => {
+    const providerId = pid as WebSearchProviderId;
+    if (!state.webSearchProvidersConfig![providerId]) {
+      state.webSearchProvidersConfig![providerId] = defaultConfig[providerId];
     }
   });
 }
@@ -1197,6 +1213,7 @@ export const useSettingsStore = create<SettingsState>()(
               const pdfFallback = buildFallback<PDFProviderId>(newPDFConfig);
               const imageFallback = buildFallback<ImageProviderId>(newImageConfig);
               const videoFallback = buildFallback<VideoProviderId>(newVideoConfig);
+              const webSearchFallback = buildFallback<WebSearchProviderId>(newWebSearchConfig);
 
               const validLLMProvider = validateProvider(
                 state.providerId,
@@ -1230,6 +1247,12 @@ export const useSettingsStore = create<SettingsState>()(
                 state.videoProviderId,
                 newVideoConfig,
                 videoFallback,
+              );
+              const validWebSearchProvider = validateProvider(
+                state.webSearchProviderId,
+                newWebSearchConfig,
+                webSearchFallback,
+                'tavily' as WebSearchProviderId,
               );
 
               // Auto-recover: when provider is empty but server has available ones
@@ -1394,6 +1417,9 @@ export const useSettingsStore = create<SettingsState>()(
                 ...(validPDFProvider !== state.pdfProviderId && {
                   pdfProviderId: validPDFProvider as PDFProviderId,
                 }),
+                ...(validWebSearchProvider !== state.webSearchProviderId && {
+                  webSearchProviderId: validWebSearchProvider as WebSearchProviderId,
+                }),
                 ...(validImageProvider !== state.imageProviderId && {
                   imageProviderId: validImageProvider as ImageProviderId,
                 }),
@@ -1483,6 +1509,7 @@ export const useSettingsStore = create<SettingsState>()(
           Object.assign(state, defaultAudioConfig);
         }
         ensureBuiltInAudioProviders(state);
+        ensureBuiltInWebSearchProviders(state);
 
         // Migrate global ttsModelId to per-provider
         if ((state as Record<string, unknown>).ttsModelId) {
@@ -1582,6 +1609,11 @@ export const useSettingsStore = create<SettingsState>()(
               enabled: true,
               isServerConfigured: oldIsServerConfigured,
             },
+            bocha: {
+              apiKey: '',
+              baseUrl: '',
+              enabled: true,
+            },
           } as SettingsState['webSearchProvidersConfig'];
           delete stateRecord.webSearchApiKey;
           delete stateRecord.webSearchIsServerConfigured;
@@ -1589,6 +1621,7 @@ export const useSettingsStore = create<SettingsState>()(
 
         ensureValidProviderSelections(state);
         ensureBuiltInAudioProviders(state);
+        ensureBuiltInWebSearchProviders(state);
         state.thinkingConfigs = pruneThinkingConfigs(state.thinkingConfigs, state.providersConfig);
 
         return state;
@@ -1602,6 +1635,7 @@ export const useSettingsStore = create<SettingsState>()(
         ensureBuiltInAudioProviders(merged as Partial<SettingsState>);
         ensureBuiltInImageProviders(merged as Partial<SettingsState>);
         ensureBuiltInVideoProviders(merged as Partial<SettingsState>);
+        ensureBuiltInWebSearchProviders(merged as Partial<SettingsState>);
         ensureValidProviderSelections(merged as Partial<SettingsState>);
         const typedMerged = merged as Partial<SettingsState>;
         typedMerged.thinkingConfigs = pruneThinkingConfigs(

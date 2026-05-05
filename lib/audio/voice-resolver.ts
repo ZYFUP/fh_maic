@@ -132,7 +132,11 @@ export function getAvailableProvidersWithVoices(
     const isServerConfigured = providerConfig?.isServerConfigured === true;
     const isKeylessLocalProvider =
       !config.requiresApiKey &&
-      !!(providerConfig?.serverBaseUrl?.trim() || providerConfig?.baseUrl?.trim() || config.defaultBaseUrl);
+      !!(
+        providerConfig?.serverBaseUrl?.trim() ||
+        providerConfig?.baseUrl?.trim() ||
+        config.defaultBaseUrl
+      );
     const isLocalVoxCPM =
       providerId === VOXCPM_TTS_PROVIDER_ID &&
       !!(providerConfig?.serverBaseUrl?.trim() || providerConfig?.baseUrl?.trim());
