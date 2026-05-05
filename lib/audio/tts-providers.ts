@@ -239,7 +239,7 @@ async function generateLemonadeTTS(
     body: JSON.stringify({
       model: config.modelId || TTS_PROVIDERS['lemonade-tts'].defaultModelId,
       input: text,
-      voice: config.voice || 'default',
+      voice: config.voice || 'af_heart',
       speed: config.speed || 1.0,
       response_format: config.format || 'wav',
     }),

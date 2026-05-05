@@ -953,7 +953,6 @@ export const TTS_PROVIDERS: Record<BuiltInTTSProviderId, TTSProviderConfig> = {
     models: [{ id: 'kokoro-v1', name: 'Kokoro v1' }],
     defaultModelId: 'kokoro-v1',
     voices: [
-      { id: 'default', name: 'Default', language: 'auto', gender: 'neutral' },
       // American English — female
       { id: 'af_alloy', name: 'Alloy', language: 'en-US', gender: 'female' },
       { id: 'af_aoede', name: 'Aoede', language: 'en-US', gender: 'female' },
@@ -1003,16 +1002,16 @@ export const TTS_PROVIDERS: Record<BuiltInTTSProviderId, TTSProviderConfig> = {
       // Japanese — male
       { id: 'jm_kumo', name: 'Kumo', language: 'ja-JP', gender: 'male' },
       // Spanish
-      { id: 'ef_dora', name: 'Dora', language: 'es', gender: 'female' },
-      { id: 'em_alex', name: 'Alex', language: 'es', gender: 'male' },
-      { id: 'em_santa', name: 'Santa', language: 'es', gender: 'male' },
+      { id: 'ef_dora', name: 'Dora', language: 'es-ES', gender: 'female' },
+      { id: 'em_alex', name: 'Alex', language: 'es-ES', gender: 'male' },
+      { id: 'em_santa', name: 'Santa', language: 'es-ES', gender: 'male' },
       // French
       { id: 'ff_siwis', name: 'Siwis', language: 'fr-FR', gender: 'female' },
       // Hindi
-      { id: 'hf_alpha', name: 'Alpha', language: 'hi', gender: 'female' },
-      { id: 'hf_beta', name: 'Beta', language: 'hi', gender: 'female' },
-      { id: 'hm_omega', name: 'Omega', language: 'hi', gender: 'male' },
-      { id: 'hm_psi', name: 'Psi', language: 'hi', gender: 'male' },
+      { id: 'hf_alpha', name: 'Alpha', language: 'hi-IN', gender: 'female' },
+      { id: 'hf_beta', name: 'Beta', language: 'hi-IN', gender: 'female' },
+      { id: 'hm_omega', name: 'Omega', language: 'hi-IN', gender: 'male' },
+      { id: 'hm_psi', name: 'Psi', language: 'hi-IN', gender: 'male' },
       // Italian
       { id: 'if_sara', name: 'Sara', language: 'it-IT', gender: 'female' },
       { id: 'im_nicola', name: 'Nicola', language: 'it-IT', gender: 'male' },
@@ -1257,7 +1256,7 @@ export const DEFAULT_TTS_VOICES: Record<BuiltInTTSProviderId, string> = {
   'doubao-tts': 'zh_female_vv_uranus_bigtts',
   'elevenlabs-tts': 'EXAVITQu4vr4xnSDxMaL',
   'minimax-tts': 'female-yujie',
-  'lemonade-tts': 'default',
+  'lemonade-tts': 'af_heart',
   'browser-native-tts': 'default',
 };
 
