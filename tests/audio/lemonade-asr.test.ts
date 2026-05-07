@@ -12,6 +12,13 @@ function wavBuffer(): Buffer {
   return buf;
 }
 
+function wavArrayBuffer(): ArrayBuffer {
+  const buffer = wavBuffer();
+  const arrayBuffer = new ArrayBuffer(buffer.byteLength);
+  new Uint8Array(arrayBuffer).set(buffer);
+  return arrayBuffer;
+}
+
 describe('Lemonade ASR', () => {
   beforeEach(() => {
     mockFetch.mockReset();
@@ -75,7 +82,7 @@ describe('Lemonade ASR', () => {
       json: async () => ({ text: 'hello' }),
     });
 
-    const audioFile = new File([wavBuffer()], 'recording.wav');
+    const audioFile = new File([wavArrayBuffer()], 'recording.wav');
     const result = await transcribeAudio({ providerId: 'lemonade-asr' }, audioFile);
 
     expect(result).toEqual({ text: 'hello' });
