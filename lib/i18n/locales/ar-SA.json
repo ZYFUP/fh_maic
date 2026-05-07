@@ -605,6 +605,8 @@
     "providerElevenLabsTTS": "ElevenLabs TTS",
     "providerMiniMaxTTS": "MiniMax TTS",
     "providerLemonadeTTS": "Lemonade TTS (محلي)",
+    "lemonadeAutoMatchVoiceLanguageLabel": "مطابقة لغة الصوت تلقائيًا",
+    "lemonadeAutoMatchVoiceLanguageDescription": "ينطبق على kokoro-v1 فقط. عند عدم تطابق لغة الصوت المحدد مع النص، يتم التبديل تلقائيًا إلى صوت باللغة نفسها.",
     "providerBrowserNativeTTS": "تحويل النص إلى كلام المدمج في المتصفح",
     "voxcpmBackend": "الخلفية",
     "voxcpmBaseUrlPending": "أدخل Base URL لإنشاء عنوان الطلب",
