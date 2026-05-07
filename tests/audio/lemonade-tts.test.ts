@@ -122,7 +122,10 @@ describe('Lemonade TTS', () => {
       headers: { get: () => 'audio/wav' },
     });
 
-    await generateTTS({ providerId: 'lemonade-tts', voice: 'jf_alpha' }, 'こんにちは、Python を学ぼう');
+    await generateTTS(
+      { providerId: 'lemonade-tts', voice: 'jf_alpha' },
+      'こんにちは、Python を学ぼう',
+    );
 
     const body = JSON.parse(mockFetch.mock.calls[0][1].body);
     expect(body.voice).toBe('jf_alpha');

@@ -528,9 +528,7 @@ export function TTSSettings({ selectedProviderId }: TTSSettingsProps) {
         <div className="rounded-lg border border-border/60 bg-background px-4 py-3">
           <div className="flex items-start justify-between gap-4">
             <div className="space-y-1">
-              <Label className="text-sm">
-                {t('settings.lemonadeAutoMatchVoiceLanguageLabel')}
-              </Label>
+              <Label className="text-sm">{t('settings.lemonadeAutoMatchVoiceLanguageLabel')}</Label>
               <p className="text-xs text-muted-foreground">
                 {t('settings.lemonadeAutoMatchVoiceLanguageDescription')}
               </p>
