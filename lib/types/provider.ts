@@ -60,7 +60,8 @@ export type ThinkingRequestAdapter =
   | 'doubao'
   | 'openrouter'
   | 'hunyuan'
-  | 'xiaomi';
+  | 'xiaomi'
+  | 'lemonade';
 
 /**
  * Describes a model's thinking/reasoning API control capability.

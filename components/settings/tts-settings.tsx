@@ -4,6 +4,7 @@ import { useState, useEffect, useRef, type ReactNode } from 'react';
 import { Label } from '@/components/ui/label';
 import { Input } from '@/components/ui/input';
 import { Button } from '@/components/ui/button';
+import { Switch } from '@/components/ui/switch';
 import { Textarea } from '@/components/ui/textarea';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
 import {
@@ -89,6 +90,7 @@ export function TTSSettings({ selectedProviderId }: TTSSettingsProps) {
   const providerConfig = ttsProvidersConfig[selectedProviderId];
   const isServerConfigured = !!providerConfig?.isServerConfigured;
   const isVoxCPM = selectedProviderId === 'voxcpm-tts';
+  const isLemonade = selectedProviderId === 'lemonade-tts';
   const voxcpmBackend = normalizeVoxCPMBackend(providerConfig?.providerOptions?.backend);
   const requiresApiKey = isCustom
     ? !!providerConfig?.requiresApiKey
@@ -519,6 +521,33 @@ export function TTSSettings({ selectedProviderId }: TTSSettingsProps) {
           <p className="text-[11px] text-muted-foreground/60">
             {t('settings.modelSelectedViaVoice')}
           </p>
+        </div>
+      )}
+
+      {isLemonade && (
+        <div className="rounded-lg border border-border/60 bg-background px-4 py-3">
+          <div className="flex items-start justify-between gap-4">
+            <div className="space-y-1">
+              <Label className="text-sm">
+                {t('settings.lemonadeAutoMatchVoiceLanguageLabel')}
+              </Label>
+              <p className="text-xs text-muted-foreground">
+                {t('settings.lemonadeAutoMatchVoiceLanguageDescription')}
+              </p>
+            </div>
+            <Switch
+              checked={providerConfig?.providerOptions?.autoMatchVoiceLanguage !== false}
+              onCheckedChange={(checked) =>
+                setTTSProviderConfig(selectedProviderId, {
+                  providerOptions: {
+                    ...(providerConfig?.providerOptions || {}),
+                    autoMatchVoiceLanguage: checked,
+                  },
+                })
+              }
+              aria-label={t('settings.lemonadeAutoMatchVoiceLanguageLabel')}
+            />
+          </div>
         </div>
       )}
 

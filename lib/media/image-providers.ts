@@ -126,7 +126,10 @@ export const IMAGE_PROVIDERS: Record<ImageProviderId, ImageProviderConfig> = {
     requiresApiKey: false,
     defaultBaseUrl: 'http://localhost:13305/v1',
     icon: '/logos/lemonade.svg',
-    models: [{ id: 'sd-cpp', name: 'Stable Diffusion (sd-cpp)' }],
+    models: [
+      { id: 'Qwen-Image-GGUF', name: 'Qwen Image GGUF' },
+      { id: 'sd-cpp', name: 'Stable Diffusion (sd-cpp)' },
+    ],
     supportedAspectRatios: ['16:9', '4:3', '1:1', '9:16'],
     maxResolution: { width: 1024, height: 1024 },
   },

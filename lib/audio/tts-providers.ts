@@ -110,6 +110,8 @@ export interface TTSGenerationResult {
   format: string;
 }
 
+const CJK_LANG_THRESHOLD = 0.3;
+
 /**
  * Thrown when a TTS provider returns a rate-limit / concurrency-quota error.
  * Allows downstream consumers to distinguish rate-limit errors from other TTS failures.
@@ -229,6 +231,8 @@ async function generateLemonadeTTS(
     /\/$/,
     '',
   );
+  const modelId = config.modelId || TTS_PROVIDERS['lemonade-tts'].defaultModelId;
+  const voice = resolveLemonadeVoice(config, text, modelId);
 
   const response = await fetch(`${baseUrl}/audio/speech`, {
     method: 'POST',
@@ -237,9 +241,9 @@ async function generateLemonadeTTS(
       ...getBackendAuthHeaders(config.apiKey),
     },
     body: JSON.stringify({
-      model: config.modelId || TTS_PROVIDERS['lemonade-tts'].defaultModelId,
+      model: modelId,
       input: text,
-      voice: config.voice || 'af_heart',
+      voice,
       speed: config.speed || 1.0,
       response_format: config.format || 'wav',
     }),
@@ -255,6 +259,69 @@ async function generateLemonadeTTS(
     audio: new Uint8Array(arrayBuffer),
     format: getAudioResponseFormat(contentType),
   };
+}
+
+function resolveLemonadeVoice(config: TTSModelConfig, text: string, modelId: string): string {
+  const fallbackVoice = config.voice || 'af_heart';
+  if (modelId !== 'kokoro-v1' || !isLemonadeAutoMatchVoiceLanguageEnabled(config)) {
+    return fallbackVoice;
+  }
+
+  if (!shouldPreferChineseLemonadeVoice(text)) {
+    return fallbackVoice;
+  }
+
+  const voices = TTS_PROVIDERS['lemonade-tts'].voices;
+  const selectedVoice = voices.find((voice) => voice.id === fallbackVoice);
+
+  if (!selectedVoice) {
+    return inferLemonadeFallbackVoice(voices, 'zh-CN') || fallbackVoice;
+  }
+
+  if (selectedVoice.language === 'zh-CN') {
+    return fallbackVoice;
+  }
+
+  return inferLemonadeFallbackVoice(voices, 'zh-CN', selectedVoice.gender) || fallbackVoice;
+}
+
+function isLemonadeAutoMatchVoiceLanguageEnabled(config: TTSModelConfig): boolean {
+  return config.providerOptions?.autoMatchVoiceLanguage !== false;
+}
+
+function shouldPreferChineseLemonadeVoice(text: string): boolean {
+  const cjkCount = (text.match(/[\u4e00-\u9fff\u3400-\u4dbf]/g) || []).length;
+  const ratio = text.length > 0 ? cjkCount / text.length : 0;
+  return ratio > CJK_LANG_THRESHOLD;
+}
+
+function inferLemonadeFallbackVoice(
+  voices: Array<{ id: string; language: string; gender?: 'male' | 'female' | 'neutral' }>,
+  language: 'zh-CN' | 'en-US',
+  preferredGender?: 'male' | 'female' | 'neutral',
+): string | undefined {
+  const matchingVoices = voices.filter((voice) => voice.language === language);
+  if (matchingVoices.length === 0) {
+    return undefined;
+  }
+
+  const curatedDefaults: Record<'zh-CN' | 'en-US', string> = {
+    'zh-CN': 'zf_xiaoxiao',
+    'en-US': 'af_heart',
+  };
+  const curatedVoice = matchingVoices.find((voice) => voice.id === curatedDefaults[language]);
+  if (curatedVoice) {
+    return curatedVoice.id;
+  }
+
+  if (preferredGender) {
+    const sameGenderVoice = matchingVoices.find((voice) => voice.gender === preferredGender);
+    if (sameGenderVoice) {
+      return sameGenderVoice.id;
+    }
+  }
+
+  return matchingVoices[0]?.id;
 }
 
 /**

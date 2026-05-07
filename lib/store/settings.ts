@@ -356,7 +356,13 @@ const getDefaultAudioConfig = () => ({
     'doubao-tts': { apiKey: '', baseUrl: '', enabled: false },
     'elevenlabs-tts': { apiKey: '', baseUrl: '', enabled: false },
     'minimax-tts': { apiKey: '', baseUrl: '', modelId: 'speech-2.8-hd', enabled: false },
-    'lemonade-tts': { apiKey: '', baseUrl: '', modelId: 'kokoro-v1', enabled: false },
+    'lemonade-tts': {
+      apiKey: '',
+      baseUrl: '',
+      modelId: 'kokoro-v1',
+      enabled: false,
+      providerOptions: { autoMatchVoiceLanguage: true },
+    },
     'browser-native-tts': { apiKey: '', baseUrl: '', enabled: true },
   } as Record<
     TTSProviderId,
@@ -495,6 +501,13 @@ function ensureBuiltInAudioProviders(state: Partial<SettingsState>): void {
       voxcpmConfig.providerOptions = {
         backend: DEFAULT_VOXCPM_BACKEND,
         ...(voxcpmConfig.providerOptions || {}),
+      };
+    }
+    const lemonadeConfig = state.ttsProvidersConfig['lemonade-tts'];
+    if (lemonadeConfig) {
+      lemonadeConfig.providerOptions = {
+        autoMatchVoiceLanguage: true,
+        ...(lemonadeConfig.providerOptions || {}),
       };
     }
   }

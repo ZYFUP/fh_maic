@@ -682,6 +682,8 @@
     "voiceBaseUrlRequired": "需要 Base URL",
     "ttsTestTextPlaceholder": "输入要转换的文本",
     "ttsTestTextDefault": "你好，这是一段测试语音。",
+    "lemonadeAutoMatchVoiceLanguageLabel": "自动匹配音色语言",
+    "lemonadeAutoMatchVoiceLanguageDescription": "仅对 kokoro-v1 生效。当所选音色语言与文本不一致时，自动切换到同语言音色。",
     "startRecording": "开始录音",
     "stopRecording": "停止录音",
     "recording": "录音中...",
