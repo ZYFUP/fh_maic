@@ -208,7 +208,7 @@ async function transcribeLemonadeASR(
   );
 
   const audioBlob = await toAudioBlob(audioBuffer);
-  if (!isWavAudio(audioBlob)) {
+  if (!(await isWavAudio(audioBlob))) {
     throw new Error(
       'Lemonade ASR currently supports WAV input only. Recordings should be converted to WAV before upload.',
     );
@@ -254,8 +254,17 @@ async function toAudioBlob(audioBuffer: Buffer | Blob): Promise<Blob> {
   throw new Error('Invalid audio buffer type');
 }
 
-function isWavAudio(blob: Blob): boolean {
-  return blob.type.includes('audio/wav') || blob.type.includes('audio/x-wav');
+async function isWavAudio(blob: Blob): Promise<boolean> {
+  if (blob.type.includes('audio/wav') || blob.type.includes('audio/x-wav')) {
+    return true;
+  }
+
+  if (blob instanceof File && /\.wav$/i.test(blob.name)) {
+    return true;
+  }
+
+  const header = await blob.slice(0, 12).arrayBuffer();
+  return detectWavBytes(new Uint8Array(header));
 }
 
 function detectWavBuffer(buffer: Buffer): boolean {
@@ -263,6 +272,14 @@ function detectWavBuffer(buffer: Buffer): boolean {
     buffer.byteLength >= 12 &&
     buffer.toString('ascii', 0, 4) === 'RIFF' &&
     buffer.toString('ascii', 8, 12) === 'WAVE'
+  );
+}
+
+function detectWavBytes(bytes: Uint8Array): boolean {
+  return (
+    bytes.byteLength >= 12 &&
+    String.fromCharCode(...bytes.slice(0, 4)) === 'RIFF' &&
+    String.fromCharCode(...bytes.slice(8, 12)) === 'WAVE'
   );
 }
 

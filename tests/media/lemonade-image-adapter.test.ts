@@ -32,7 +32,7 @@ describe('lemonade-image-adapter', () => {
     );
     const body = JSON.parse(mockFetch.mock.calls[0][1].body);
     expect(body).toEqual({
-      model: 'sd-cpp',
+      model: 'Qwen-Image-GGUF',
       prompt: 'a fox',
       n: 1,
       size: '768x768',

@@ -10,7 +10,7 @@ import type {
   ImageGenerationResult,
 } from '../types';
 
-const DEFAULT_MODEL = 'sd-cpp';
+const DEFAULT_MODEL = 'Qwen-Image-GGUF';
 const DEFAULT_BASE_URL = 'http://localhost:13305/v1';
 
 function normalizeBaseUrl(baseUrl?: string): string {

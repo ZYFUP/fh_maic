@@ -69,6 +69,19 @@ describe('Lemonade ASR', () => {
     expect(mockFetch).not.toHaveBeenCalled();
   });
 
+  it('accepts WAV files even when the MIME type is missing', async () => {
+    mockFetch.mockResolvedValueOnce({
+      ok: true,
+      json: async () => ({ text: 'hello' }),
+    });
+
+    const audioFile = new File([wavBuffer()], 'recording.wav');
+    const result = await transcribeAudio({ providerId: 'lemonade-asr' }, audioFile);
+
+    expect(result).toEqual({ text: 'hello' });
+    expect(mockFetch).toHaveBeenCalledTimes(1);
+  });
+
   it('returns empty text gracefully when upstream reports empty audio', async () => {
     mockFetch.mockResolvedValueOnce({
       ok: false,
