@@ -139,7 +139,9 @@ export function ASRSettings({ selectedProviderId }: ASRSettingsProps) {
               formData.append('providerId', selectedProviderId);
               formData.append(
                 'modelId',
-                asrProvidersConfig[selectedProviderId]?.modelId || asrProvider?.defaultModelId || '',
+                asrProvidersConfig[selectedProviderId]?.modelId ||
+                  asrProvider?.defaultModelId ||
+                  '',
               );
               formData.append('language', asrLanguage);
               const apiKeyValue = asrProvidersConfig[selectedProviderId]?.apiKey;
