@@ -69,7 +69,7 @@ describe('Lemonade TTS', () => {
     expect(body.voice).toBe('af_heart');
   });
 
-  it('switches kokoro voice to zh-CN when Chinese text is paired with an English voice', async () => {
+  it('uses the selected voice consistently regardless of text language', async () => {
     mockFetch.mockResolvedValueOnce({
       ok: true,
       arrayBuffer: async () => wavBytes(),
@@ -79,56 +79,7 @@ describe('Lemonade TTS', () => {
     await generateTTS({ providerId: 'lemonade-tts', voice: 'af_heart' }, '给我讲讲 Python');
 
     const body = JSON.parse(mockFetch.mock.calls[0][1].body);
-    expect(body.voice).toBe('zf_xiaoxiao');
-  });
-
-  it('keeps the selected voice when its language already matches the text', async () => {
-    mockFetch.mockResolvedValueOnce({
-      ok: true,
-      arrayBuffer: async () => wavBytes(),
-      headers: { get: () => 'audio/wav' },
-    });
-
-    await generateTTS({ providerId: 'lemonade-tts', voice: 'zf_xiaoxiao' }, '给我讲讲 Python');
-
-    const body = JSON.parse(mockFetch.mock.calls[0][1].body);
-    expect(body.voice).toBe('zf_xiaoxiao');
-  });
-
-  it('can disable automatic language matching via providerOptions', async () => {
-    mockFetch.mockResolvedValueOnce({
-      ok: true,
-      arrayBuffer: async () => wavBytes(),
-      headers: { get: () => 'audio/wav' },
-    });
-
-    await generateTTS(
-      {
-        providerId: 'lemonade-tts',
-        voice: 'af_heart',
-        providerOptions: { autoMatchVoiceLanguage: false },
-      },
-      '给我讲讲 Python',
-    );
-
-    const body = JSON.parse(mockFetch.mock.calls[0][1].body);
     expect(body.voice).toBe('af_heart');
-  });
-
-  it('does not auto-switch non-Chinese Kokoro voices', async () => {
-    mockFetch.mockResolvedValueOnce({
-      ok: true,
-      arrayBuffer: async () => wavBytes(),
-      headers: { get: () => 'audio/wav' },
-    });
-
-    await generateTTS(
-      { providerId: 'lemonade-tts', voice: 'jf_alpha' },
-      'こんにちは、Python を学ぼう',
-    );
-
-    const body = JSON.parse(mockFetch.mock.calls[0][1].body);
-    expect(body.voice).toBe('jf_alpha');
   });
 
   it('does not require an API key (keyless provider)', async () => {

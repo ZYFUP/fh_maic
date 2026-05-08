@@ -605,8 +605,6 @@
     "providerElevenLabsTTS": "ElevenLabs TTS",
     "providerMiniMaxTTS": "MiniMax TTS",
     "providerLemonadeTTS": "Lemonade TTS（ローカル）",
-    "lemonadeAutoMatchVoiceLanguageLabel": "音声言語を自動で合わせる",
-    "lemonadeAutoMatchVoiceLanguageDescription": "kokoro-v1 のみ有効です。選択した音声の言語が本文と一致しない場合、同じ言語の音声に自動で切り替えます。",
     "providerBrowserNativeTTS": "ブラウザネイティブTTS",
     "voxcpmBackend": "バックエンド",
     "voxcpmBaseUrlPending": "Base URL を入力するとリクエスト URL が生成されます",

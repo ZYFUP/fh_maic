@@ -332,27 +332,27 @@ export function AudioSettings({ onSave }: AudioSettingsProps = {}) {
           mediaRecorder.onstop = async () => {
             stream.getTracks().forEach((track) => track.stop());
 
-            const audioBlob = new Blob(audioChunks, { type: 'audio/webm' });
-            const uploadAudio = await normalizeASRUploadAudio(asrProviderId, audioBlob);
-            const formData = new FormData();
-            formData.append('audio', uploadAudio.blob, uploadAudio.fileName);
-            formData.append('providerId', asrProviderId);
-            formData.append('language', asrLanguage);
-
-            // Only append non-empty values
-            const apiKeyValue = asrProvidersConfig[asrProviderId]?.apiKey;
-            if (apiKeyValue && apiKeyValue.trim()) {
-              formData.append('apiKey', apiKeyValue);
-            }
-            const baseUrlValue =
-              asrProvidersConfig[asrProviderId]?.baseUrl ||
-              asrProvidersConfig[asrProviderId]?.customDefaultBaseUrl ||
-              '';
-            if (baseUrlValue && baseUrlValue.trim()) {
-              formData.append('baseUrl', baseUrlValue);
-            }
-
             try {
+              const audioBlob = new Blob(audioChunks, { type: 'audio/webm' });
+              const uploadAudio = await normalizeASRUploadAudio(asrProviderId, audioBlob);
+              const formData = new FormData();
+              formData.append('audio', uploadAudio.blob, uploadAudio.fileName);
+              formData.append('providerId', asrProviderId);
+              formData.append('language', asrLanguage);
+
+              // Only append non-empty values
+              const apiKeyValue = asrProvidersConfig[asrProviderId]?.apiKey;
+              if (apiKeyValue && apiKeyValue.trim()) {
+                formData.append('apiKey', apiKeyValue);
+              }
+              const baseUrlValue =
+                asrProvidersConfig[asrProviderId]?.baseUrl ||
+                asrProvidersConfig[asrProviderId]?.customDefaultBaseUrl ||
+                '';
+              if (baseUrlValue && baseUrlValue.trim()) {
+                formData.append('baseUrl', baseUrlValue);
+              }
+
               const response = await fetch('/api/transcription', {
                 method: 'POST',
                 body: formData,

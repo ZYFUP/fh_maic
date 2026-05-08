@@ -682,8 +682,6 @@
     "voiceBaseUrlRequired": "Base URL required",
     "ttsTestTextPlaceholder": "Enter text to convert",
     "ttsTestTextDefault": "Hello, this is a test speech.",
-    "lemonadeAutoMatchVoiceLanguageLabel": "Auto-match voice language",
-    "lemonadeAutoMatchVoiceLanguageDescription": "For kokoro-v1, automatically switch to a same-language voice when the selected voice language does not match the text.",
     "startRecording": "Start Recording",
     "stopRecording": "Stop Recording",
     "recording": "Recording...",

@@ -130,25 +130,26 @@ export function ASRSettings({ selectedProviderId }: ASRSettingsProps) {
           mediaRecorder.onstop = async () => {
             stream.getTracks().forEach((track) => track.stop());
             setIsProcessing(true);
-            const audioBlob = new Blob(audioChunks, { type: 'audio/webm' });
-            const uploadAudio = await normalizeASRUploadAudio(selectedProviderId, audioBlob);
-            const formData = new FormData();
-            formData.append('audio', uploadAudio.blob, uploadAudio.fileName);
-            formData.append('providerId', selectedProviderId);
-            formData.append(
-              'modelId',
-              asrProvidersConfig[selectedProviderId]?.modelId || asrProvider?.defaultModelId || '',
-            );
-            formData.append('language', asrLanguage);
-            const apiKeyValue = asrProvidersConfig[selectedProviderId]?.apiKey;
-            if (apiKeyValue?.trim()) formData.append('apiKey', apiKeyValue);
-            const baseUrlValue =
-              asrProvidersConfig[selectedProviderId]?.baseUrl ||
-              providerConfig?.customDefaultBaseUrl ||
-              '';
-            if (baseUrlValue?.trim()) formData.append('baseUrl', baseUrlValue);
 
             try {
+              const audioBlob = new Blob(audioChunks, { type: 'audio/webm' });
+              const uploadAudio = await normalizeASRUploadAudio(selectedProviderId, audioBlob);
+              const formData = new FormData();
+              formData.append('audio', uploadAudio.blob, uploadAudio.fileName);
+              formData.append('providerId', selectedProviderId);
+              formData.append(
+                'modelId',
+                asrProvidersConfig[selectedProviderId]?.modelId || asrProvider?.defaultModelId || '',
+              );
+              formData.append('language', asrLanguage);
+              const apiKeyValue = asrProvidersConfig[selectedProviderId]?.apiKey;
+              if (apiKeyValue?.trim()) formData.append('apiKey', apiKeyValue);
+              const baseUrlValue =
+                asrProvidersConfig[selectedProviderId]?.baseUrl ||
+                providerConfig?.customDefaultBaseUrl ||
+                '';
+              if (baseUrlValue?.trim()) formData.append('baseUrl', baseUrlValue);
+
               const response = await fetch('/api/transcription', {
                 method: 'POST',
                 body: formData,

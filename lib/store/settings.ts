@@ -361,7 +361,6 @@ const getDefaultAudioConfig = () => ({
       baseUrl: '',
       modelId: 'kokoro-v1',
       enabled: false,
-      providerOptions: { autoMatchVoiceLanguage: true },
     },
     'browser-native-tts': { apiKey: '', baseUrl: '', enabled: true },
   } as Record<
@@ -501,13 +500,6 @@ function ensureBuiltInAudioProviders(state: Partial<SettingsState>): void {
       voxcpmConfig.providerOptions = {
         backend: DEFAULT_VOXCPM_BACKEND,
         ...(voxcpmConfig.providerOptions || {}),
-      };
-    }
-    const lemonadeConfig = state.ttsProvidersConfig['lemonade-tts'];
-    if (lemonadeConfig) {
-      lemonadeConfig.providerOptions = {
-        autoMatchVoiceLanguage: true,
-        ...(lemonadeConfig.providerOptions || {}),
       };
     }
   }

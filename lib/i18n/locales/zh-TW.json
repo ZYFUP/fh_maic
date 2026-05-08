@@ -585,8 +585,6 @@
     "providerElevenLabsTTS": "ElevenLabs TTS",
     "providerMiniMaxTTS": "MiniMax TTS",
     "providerLemonadeTTS": "Lemonade TTS（本機）",
-    "lemonadeAutoMatchVoiceLanguageLabel": "自動匹配音色語言",
-    "lemonadeAutoMatchVoiceLanguageDescription": "僅對 kokoro-v1 生效。當所選音色語言與文字不一致時，會自動切換為相同語言的音色。",
     "providerBrowserNativeTTS": "瀏覽器原生 TTS",
     "providerOpenAIWhisper": "OpenAI ASR (gpt-4o-mini-transcribe)",
     "providerBrowserNative": "瀏覽器原生 ASR",
