@@ -1076,17 +1076,15 @@ function GenerationPreviewContent() {
               </div>
             )}
 
-            <div className="rounded-lg border border-muted/40 bg-background/90 p-4 shadow-xl backdrop-blur md:p-6">
-              <OutlinesEditor
-                outlines={session.sceneOutlines}
-                onChange={handleOutlinesChange}
-                onConfirm={handleConfirmOutlines}
-                onBack={goBackToHome}
-                alwaysReview={reviewOutlineEnabled}
-                onAlwaysReviewChange={setReviewOutlineEnabled}
-                isLoading={isConfirmingOutlines}
-              />
-            </div>
+            <OutlinesEditor
+              outlines={session.sceneOutlines}
+              onChange={handleOutlinesChange}
+              onConfirm={handleConfirmOutlines}
+              onBack={goBackToHome}
+              alwaysReview={reviewOutlineEnabled}
+              onAlwaysReviewChange={setReviewOutlineEnabled}
+              isLoading={isConfirmingOutlines}
+            />
           </motion.div>
         </div>
       </div>

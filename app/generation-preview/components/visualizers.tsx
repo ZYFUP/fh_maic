@@ -240,58 +240,77 @@ function WebSearchVisualizer({ sources }: { sources: Array<{ title: string; url:
 
 // Outline: Streams real outline data as it arrives from SSE
 function StreamingOutlineVisualizer({ outlines }: { outlines: SceneOutline[] }) {
-  // Build display lines from outlines
-  const allLines: string[] = [];
-  outlines.forEach((outline, i) => {
-    allLines.push(`${i + 1}. ${outline.title}`);
-    outline.keyPoints?.slice(0, 2).forEach((kp) => {
-      const text = kp.length > 18 ? kp.substring(0, 18) + '...' : kp;
-      allLines.push(`   • ${text}`);
-    });
-  });
-
   return (
-    <div className="w-40 h-52 bg-white dark:bg-slate-800 rounded-xl border border-slate-200 dark:border-slate-700 shadow-2xl p-4 overflow-hidden relative rotate-[-2deg] hover:rotate-0 transition-transform duration-500">
-      <div className="absolute top-0 inset-x-0 h-1 bg-blue-500/50" />
-      <div className="w-1/3 h-2 bg-slate-100 dark:bg-slate-700 rounded mb-3" />
-      <div className="space-y-1.5 font-mono text-[8px] text-muted-foreground leading-tight">
-        {allLines.length === 0 ? (
-          // Waiting for first outline — show placeholder skeleton
-          <div className="space-y-2">
-            {[60, 80, 50, 70].map((w, i) => (
-              <motion.div
-                key={i}
-                className="h-1.5 bg-slate-100 dark:bg-slate-700 rounded"
-                style={{ width: `${w}%` }}
-                animate={{ opacity: [0.3, 0.7, 0.3] }}
-                transition={{ duration: 1.2, repeat: Infinity, delay: i * 0.2 }}
-              />
-            ))}
-          </div>
-        ) : (
-          allLines.map((line, i) => (
-            <motion.div
-              key={i}
-              initial={{ opacity: 0, x: -8 }}
-              animate={{ opacity: 1, x: 0 }}
-              className={cn(
-                'truncate',
-                !line.startsWith('   ')
-                  ? 'text-blue-600 dark:text-blue-400 font-semibold text-[9px]'
-                  : 'pl-1 opacity-80',
-              )}
-            >
-              {line}
-            </motion.div>
-          ))
+    <motion.div
+      layoutId="outline-review-surface"
+      transition={{ type: 'spring', stiffness: 260, damping: 30 }}
+      className="relative h-52 w-44 overflow-hidden rounded-lg border border-slate-200/80 bg-white/90 p-3 text-left shadow-xl shadow-slate-900/10 backdrop-blur dark:border-slate-700 dark:bg-slate-900/90"
+    >
+      <div className="mb-3 flex items-center justify-between">
+        <div className="h-1.5 w-12 rounded-full bg-slate-200 dark:bg-slate-700" />
+        <motion.div
+          className="size-2 rounded-full bg-blue-500"
+          animate={{ opacity: [0.3, 1, 0.3], scale: [0.9, 1.15, 0.9] }}
+          transition={{ repeat: Infinity, duration: 1.1 }}
+        />
+      </div>
+
+      <div className="relative h-[168px] overflow-hidden pl-4">
+        <div className="absolute bottom-0 left-1.5 top-0 w-px bg-slate-200 dark:bg-slate-700" />
+        <AnimatePresence initial={false}>
+          {outlines.length === 0
+            ? [58, 78, 48, 68].map((w, i) => (
+                <motion.div
+                  key={i}
+                  className="relative mb-3"
+                  animate={{ opacity: [0.35, 0.75, 0.35] }}
+                  transition={{ duration: 1.2, repeat: Infinity, delay: i * 0.16 }}
+                >
+                  <div className="absolute -left-[15px] top-0.5 size-2 rounded-full border border-blue-300 bg-white dark:bg-slate-900" />
+                  <div
+                    className="h-2 rounded-full bg-slate-100 dark:bg-slate-800"
+                    style={{ width: `${w}%` }}
+                  />
+                  <div className="mt-1 h-1 w-2/3 rounded-full bg-slate-100 dark:bg-slate-800" />
+                </motion.div>
+              ))
+            : outlines.slice(0, 4).map((outline, i) => (
+                <motion.div
+                  key={outline.id}
+                  layout
+                  initial={{ opacity: 0, x: -10, scale: 0.96 }}
+                  animate={{ opacity: 1, x: 0, scale: 1 }}
+                  exit={{ opacity: 0, x: -10, scale: 0.96 }}
+                  transition={{ type: 'spring', stiffness: 420, damping: 34 }}
+                  className="relative mb-3"
+                >
+                  <div className="absolute -left-[15px] top-0.5 size-2 rounded-full border border-blue-300 bg-white shadow-sm shadow-blue-500/20 dark:bg-slate-900" />
+                  <div className="truncate text-[9px] font-semibold leading-tight text-slate-700 dark:text-slate-200">
+                    {i + 1}. {outline.title}
+                  </div>
+                  <div className="mt-1 truncate text-[7px] leading-tight text-slate-400 dark:text-slate-500">
+                    {outline.description || outline.keyPoints?.[0] || '...'}
+                  </div>
+                </motion.div>
+              ))}
+        </AnimatePresence>
+
+        {outlines.length > 4 && (
+          <motion.div
+            initial={{ opacity: 0 }}
+            animate={{ opacity: 1 }}
+            className="text-[8px] font-medium text-blue-500/70"
+          >
+            +{outlines.length - 4}
+          </motion.div>
         )}
       </div>
+
       <motion.div
-        className="absolute bottom-3 right-3 size-2 bg-blue-500 rounded-full"
-        animate={{ opacity: [0, 1, 0] }}
-        transition={{ repeat: Infinity, duration: 0.8 }}
+        className="absolute inset-x-0 bottom-0 h-10 bg-gradient-to-t from-white via-white/80 to-transparent dark:from-slate-900 dark:via-slate-900/80"
+        aria-hidden
       />
-    </div>
+    </motion.div>
   );
 }
 
