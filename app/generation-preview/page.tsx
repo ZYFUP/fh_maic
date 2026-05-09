@@ -7,6 +7,7 @@ import { CheckCircle2, Sparkles, AlertCircle, AlertTriangle, ArrowLeft, Bot } fr
 import { Button } from '@/components/ui/button';
 import { Card } from '@/components/ui/card';
 import { Tooltip, TooltipContent, TooltipTrigger } from '@/components/ui/tooltip';
+import { OutlinesEditor } from '@/components/generation/outlines-editor';
 import { cn } from '@/lib/utils';
 import { useStageStore } from '@/lib/store/stage';
 import { useSettingsStore } from '@/lib/store/settings';
@@ -33,12 +34,15 @@ import { type GenerationSessionState, ALL_STEPS, getActiveSteps } from './types'
 import { StepVisualizer } from './components/visualizers';
 
 const log = createLogger('GenerationPreview');
+const OUTLINE_REVIEW_AUTO_CONTINUE_MS = 2500;
 
 function GenerationPreviewContent() {
   const router = useRouter();
   const { t } = useI18n();
   const hasStartedRef = useRef(false);
   const abortControllerRef = useRef<AbortController | null>(null);
+  const outlineReviewTimerRef = useRef<ReturnType<typeof setTimeout> | null>(null);
+  const outlineReviewResolveRef = useRef<((outlines: SceneOutline[]) => void) | null>(null);
   const { profiles: voxcpmProfiles } = useVoxCPMVoiceProfiles();
 
   const [session, setSession] = useState<GenerationSessionState | null>(null);
@@ -53,6 +57,7 @@ function GenerationPreviewContent() {
     [],
   );
   const [showAgentReveal, setShowAgentReveal] = useState(false);
+  const [isConfirmingOutlines, setIsConfirmingOutlines] = useState(false);
   const [generatedAgents, setGeneratedAgents] = useState<
     Array<{
       id: string;
@@ -65,9 +70,40 @@ function GenerationPreviewContent() {
     }>
   >([]);
   const agentRevealResolveRef = useRef<(() => void) | null>(null);
+  const reviewOutlineEnabled = useSettingsStore((s) => s.reviewOutlineEnabled);
+  const setReviewOutlineEnabled = useSettingsStore((s) => s.setReviewOutlineEnabled);
 
   // Compute active steps based on session state
   const activeSteps = getActiveSteps(session);
+  const isOutlineReady = session?.previewPhase === 'outline-ready';
+  const isReviewingOutlines = session?.previewPhase === 'review';
+
+  const persistSession = (nextSession: GenerationSessionState) => {
+    setSession(nextSession);
+    sessionStorage.setItem('generationSession', JSON.stringify(nextSession));
+  };
+
+  const clearOutlineReviewTimer = () => {
+    if (outlineReviewTimerRef.current) {
+      clearTimeout(outlineReviewTimerRef.current);
+      outlineReviewTimerRef.current = null;
+    }
+  };
+
+  const waitForOutlineReviewChoice = (
+    outlines: SceneOutline[],
+    shouldReview: boolean,
+  ): Promise<SceneOutline[]> =>
+    new Promise((resolve) => {
+      outlineReviewResolveRef.current = resolve;
+      if (!shouldReview) {
+        outlineReviewTimerRef.current = setTimeout(() => {
+          outlineReviewTimerRef.current = null;
+          outlineReviewResolveRef.current = null;
+          resolve(outlines);
+        }, OUTLINE_REVIEW_AUTO_CONTINUE_MS);
+      }
+    });
 
   // Load session from sessionStorage
   useEffect(() => {
@@ -77,6 +113,9 @@ function GenerationPreviewContent() {
     if (saved) {
       try {
         const parsed = JSON.parse(saved) as GenerationSessionState;
+        if (!parsed.previewPhase) {
+          parsed.previewPhase = parsed.sceneOutlines?.length ? 'outline-ready' : 'preparing';
+        }
         setSession(parsed);
       } catch (e) {
         log.error('Failed to parse generation session:', e);
@@ -89,6 +128,7 @@ function GenerationPreviewContent() {
   useEffect(() => {
     return () => {
       abortControllerRef.current?.abort();
+      clearOutlineReviewTimer();
     };
   }, []);
 
@@ -127,7 +167,13 @@ function GenerationPreviewContent() {
 
   // Auto-start generation when session is loaded
   useEffect(() => {
-    if (session && !hasStartedRef.current) {
+    if (
+      session &&
+      !hasStartedRef.current &&
+      (!session.previewPhase ||
+        session.previewPhase === 'preparing' ||
+        session.previewPhase === 'generating-content')
+    ) {
       hasStartedRef.current = true;
       startGeneration();
     }
@@ -135,8 +181,9 @@ function GenerationPreviewContent() {
   }, [session]);
 
   // Main generation flow
-  const startGeneration = async () => {
-    if (!session) return;
+  const startGeneration = async (sessionOverride?: GenerationSessionState) => {
+    const generationSession = sessionOverride ?? session;
+    if (!generationSession) return;
 
     // Create AbortController for this generation run
     abortControllerRef.current?.abort();
@@ -145,7 +192,7 @@ function GenerationPreviewContent() {
     const signal = controller.signal;
 
     // Use a local mutable copy so we can update it after PDF parsing
-    let currentSession = session;
+    let currentSession = generationSession;
 
     setError(null);
     setCurrentStepIndex(0);
@@ -375,7 +422,7 @@ function GenerationPreviewContent() {
 
       // ── Generate outlines first (infers languageDirective) ──
       let outlines = currentSession.sceneOutlines;
-      let languageDirective: string | undefined;
+      let languageDirective = currentSession.languageDirective;
 
       const outlineStepIdx = activeSteps.findIndex((s) => s.id === 'outline');
       setCurrentStepIndex(outlineStepIdx >= 0 ? outlineStepIdx : 0);
@@ -481,16 +528,16 @@ function GenerationPreviewContent() {
         outlines = outlineResult.outlines;
         languageDirective = outlineResult.languageDirective;
 
-        // Store languageDirective on the stage
-        stage.languageDirective = languageDirective;
-
-        const updatedSession = {
+        const shouldReviewOutlines = useSettingsStore.getState().reviewOutlineEnabled;
+        const updatedSession: GenerationSessionState = {
           ...currentSession,
           sceneOutlines: outlines,
           languageDirective,
+          previewPhase: shouldReviewOutlines ? 'review' : 'outline-ready',
         };
-        setSession(updatedSession);
-        sessionStorage.setItem('generationSession', JSON.stringify(updatedSession));
+        persistSession(updatedSession);
+        currentSession = updatedSession;
+        setStreamingOutlines(outlines);
 
         // Outline generation succeeded — clear homepage draft cache
         try {
@@ -499,8 +546,27 @@ function GenerationPreviewContent() {
           /* ignore */
         }
 
-        // Brief pause to let user see the final outline state
-        await new Promise((resolve) => setTimeout(resolve, 800));
+        setStatusMessage(shouldReviewOutlines ? '' : t('generation.reviewOutlineAutoContinue'));
+        setIsConfirmingOutlines(false);
+        outlines = await waitForOutlineReviewChoice(outlines, shouldReviewOutlines);
+        clearOutlineReviewTimer();
+        currentSession = {
+          ...currentSession,
+          sceneOutlines: outlines,
+          previewPhase: 'generating-content',
+        };
+        persistSession(currentSession);
+      }
+
+      // Move to next step
+      setStatusMessage('');
+      if (!outlines || outlines.length === 0) {
+        throw new Error(t('generation.outlineEmptyResponse'));
+      }
+
+      // Store languageDirective on the stage
+      if (languageDirective) {
+        stage.languageDirective = languageDirective;
       }
 
       // ── Agent generation (after outlines — uses languageDirective + outlines) ──
@@ -875,8 +941,50 @@ function GenerationPreviewContent() {
 
   const goBackToHome = () => {
     abortControllerRef.current?.abort();
+    clearOutlineReviewTimer();
     sessionStorage.removeItem('generationSession');
     router.push('/');
+  };
+
+  const handleOpenOutlineReview = () => {
+    if (!session?.sceneOutlines) return;
+    clearOutlineReviewTimer();
+    setStatusMessage('');
+    persistSession({
+      ...session,
+      previewPhase: 'review',
+    });
+  };
+
+  const handleOutlinesChange = (outlines: SceneOutline[]) => {
+    if (!session) return;
+    setStreamingOutlines(outlines);
+    persistSession({
+      ...session,
+      sceneOutlines: outlines,
+      previewPhase: 'review',
+    });
+  };
+
+  const handleConfirmOutlines = () => {
+    if (!session?.sceneOutlines) return;
+    setIsConfirmingOutlines(true);
+    clearOutlineReviewTimer();
+
+    if (outlineReviewResolveRef.current) {
+      const resolve = outlineReviewResolveRef.current;
+      outlineReviewResolveRef.current = null;
+      resolve(session.sceneOutlines);
+      return;
+    }
+
+    const confirmedSession: GenerationSessionState = {
+      ...session,
+      previewPhase: 'generating-content',
+    };
+    persistSession(confirmedSession);
+    hasStartedRef.current = true;
+    void startGeneration(confirmedSession);
   };
 
   // Still loading session from sessionStorage
@@ -913,6 +1021,77 @@ function GenerationPreviewContent() {
     activeSteps.length > 0
       ? activeSteps[Math.min(currentStepIndex, activeSteps.length - 1)]
       : ALL_STEPS[0];
+
+  if (isReviewingOutlines && session.sceneOutlines) {
+    const outlineStepIndex = Math.max(
+      0,
+      activeSteps.findIndex((step) => step.id === 'outline'),
+    );
+
+    return (
+      <div className="min-h-[100dvh] w-full bg-gradient-to-b from-slate-50 to-slate-100 dark:from-slate-950 dark:to-slate-900 flex flex-col items-center p-4 relative overflow-hidden">
+        <motion.div
+          initial={{ opacity: 0, y: -20 }}
+          animate={{ opacity: 1, y: 0 }}
+          className="absolute top-4 left-4 z-20"
+        >
+          <Button variant="ghost" size="sm" onClick={goBackToHome} disabled={isConfirmingOutlines}>
+            <ArrowLeft className="size-4 mr-2" />
+            {t('generation.backToHome')}
+          </Button>
+        </motion.div>
+
+        <div className="z-10 w-full max-w-5xl pt-16 pb-8">
+          <motion.div
+            initial={{ opacity: 0, y: 20 }}
+            animate={{ opacity: 1, y: 0 }}
+            className="space-y-6"
+          >
+            <div className="flex justify-center gap-2">
+              {activeSteps.map((step, idx) => (
+                <div
+                  key={step.id}
+                  className={cn(
+                    'h-1.5 rounded-full transition-all duration-500',
+                    idx < outlineStepIndex
+                      ? 'w-1.5 bg-blue-500/30'
+                      : idx === outlineStepIndex
+                        ? 'w-8 bg-blue-500'
+                        : 'w-1.5 bg-muted/50',
+                  )}
+                />
+              ))}
+            </div>
+
+            <div className="max-w-2xl space-y-2 text-center mx-auto">
+              <h2 className="text-2xl font-bold">{t('generation.reviewOutlineTitle')}</h2>
+              <p className="text-muted-foreground text-sm md:text-base">
+                {t('generation.reviewOutlineDesc')}
+              </p>
+            </div>
+
+            {error && (
+              <div className="mx-auto max-w-2xl rounded-md border border-red-500/20 bg-red-500/10 px-4 py-3 text-sm text-red-600 dark:text-red-300">
+                {error}
+              </div>
+            )}
+
+            <div className="rounded-lg border border-muted/40 bg-background/90 p-4 shadow-xl backdrop-blur md:p-6">
+              <OutlinesEditor
+                outlines={session.sceneOutlines}
+                onChange={handleOutlinesChange}
+                onConfirm={handleConfirmOutlines}
+                onBack={goBackToHome}
+                alwaysReview={reviewOutlineEnabled}
+                onAlwaysReviewChange={setReviewOutlineEnabled}
+                isLoading={isConfirmingOutlines}
+              />
+            </div>
+          </motion.div>
+        </div>
+      </div>
+    );
+  }
 
   return (
     <div className="min-h-[100dvh] w-full bg-gradient-to-b from-slate-50 to-slate-100 dark:from-slate-950 dark:to-slate-900 flex flex-col items-center justify-center p-4 relative overflow-hidden text-center">
@@ -1107,6 +1286,19 @@ function GenerationPreviewContent() {
                 <Button size="lg" variant="outline" className="w-full h-12" onClick={goBackToHome}>
                   {t('generation.goBackAndRetry')}
                 </Button>
+              </motion.div>
+            ) : isOutlineReady ? (
+              <motion.div
+                initial={{ opacity: 0, y: 10 }}
+                animate={{ opacity: 1, y: 0 }}
+                className="flex flex-col items-center gap-2"
+              >
+                <Button size="lg" variant="outline" onClick={handleOpenOutlineReview}>
+                  {t('generation.reviewOutlineAction')}
+                </Button>
+                <p className="max-w-sm text-xs text-muted-foreground/60 normal-case tracking-normal">
+                  {t('generation.reviewOutlineAutoContinue')}
+                </p>
               </motion.div>
             ) : !isComplete ? (
               <motion.div
