@@ -1,6 +1,7 @@
 import { useMemo } from 'react';
 import { ElementTypes, type PPTElement, type PPTVideoElement } from '@/lib/types/slides';
 import { isMediaPlaceholder } from '@/lib/store/media-generation';
+import { Play } from 'lucide-react';
 
 import { BaseImageElement } from '../element/ImageElement/BaseImageElement';
 import { BaseTextElement } from '../element/TextElement/BaseTextElement';
@@ -13,6 +14,19 @@ import { BaseTableElement } from '../element/TableElement/BaseTableElement';
 interface ThumbnailElementProps {
   readonly elementInfo: PPTElement;
   readonly elementIndex: number;
+}
+
+function ThumbnailVideoIndicator() {
+  return (
+    <div
+      className="absolute inset-0 flex items-center justify-center pointer-events-none"
+      data-testid="thumbnail-video-indicator"
+    >
+      <div className="flex size-28 items-center justify-center rounded-full bg-black/45 shadow-lg ring-2 ring-white/85">
+        <Play className="ml-1 size-14 fill-white text-white" />
+      </div>
+    </div>
+  );
 }
 
 function ThumbnailVideoElement({ elementInfo }: { readonly elementInfo: PPTVideoElement }) {
@@ -30,7 +44,7 @@ function ThumbnailVideoElement({ elementInfo }: { readonly elementInfo: PPTVideo
       }}
     >
       <div className="w-full h-full" style={{ transform: `rotate(${elementInfo.rotate}deg)` }}>
-        {src ? (
+        {src && (
           <video
             className="w-full h-full"
             style={{ objectFit: 'contain' }}
@@ -40,21 +54,9 @@ function ThumbnailVideoElement({ elementInfo }: { readonly elementInfo: PPTVideo
             muted
             playsInline
           />
-        ) : (
-          <div className="w-full h-full flex items-center justify-center bg-black/10 rounded">
-            <svg
-              className="w-12 h-12 text-gray-400"
-              viewBox="0 0 24 24"
-              fill="none"
-              stroke="currentColor"
-              strokeWidth={1.5}
-              strokeLinecap="round"
-              strokeLinejoin="round"
-            >
-              <polygon points="5 3 19 12 5 21 5 3" />
-            </svg>
-          </div>
         )}
+        {!src && <div className="w-full h-full bg-black/10 rounded" />}
+        <ThumbnailVideoIndicator />
       </div>
     </div>
   );

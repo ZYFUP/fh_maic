@@ -147,6 +147,7 @@ test.describe('Home recent video thumbnails', () => {
     await expect(video).toHaveAttribute('src', /^blob:/);
     await expect(video).toHaveAttribute('poster', /^blob:/);
     await expect(video).not.toHaveAttribute('controls', '');
+    await expect(card.locator('[data-testid="thumbnail-video-indicator"]')).toBeVisible();
 
     await card.click({ position: { x: 24, y: 24 } });
     await page.waitForURL(`**/classroom/${TEST_STAGE_ID}`);
@@ -175,6 +176,7 @@ test.describe('Home recent video thumbnails', () => {
 
     await expect(thumbnailVideo).toBeVisible({ timeout: 10_000 });
     await expect(thumbnailVideo).toHaveAttribute('src', /^blob:/);
+    await expect(card.locator('[data-testid="thumbnail-video-indicator"]')).toBeVisible();
 
     await card.click({ position: { x: 24, y: 24 } });
     await page.waitForURL(`**/classroom/${LEGACY_STAGE_ID}`);
