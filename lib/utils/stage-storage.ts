@@ -182,6 +182,8 @@ type ThumbnailMediaElement = {
   poster?: string;
 };
 
+type ThumbnailSlide = import('../types/slides').Slide;
+
 function isGeneratedMediaRef(value: unknown): value is string {
   return typeof value === 'string' && /^gen_(img|vid)_[\w-]+$/i.test(value);
 }
@@ -209,6 +211,25 @@ function blobWithType(blob: Blob, mimeType: string): Blob {
   return blob.type ? blob : new Blob([blob], { type: mimeType });
 }
 
+function revokeObjectUrl(url: string | undefined) {
+  if (url?.startsWith('blob:')) {
+    URL.revokeObjectURL(url);
+  }
+}
+
+export function revokeThumbnailSlideMediaUrls(slides: Record<string, ThumbnailSlide>) {
+  for (const slide of Object.values(slides)) {
+    for (const element of slide.elements as ThumbnailMediaElement[]) {
+      if (element.type === 'image' || element.type === 'video') {
+        revokeObjectUrl(element.src);
+      }
+      if (element.type === 'video') {
+        revokeObjectUrl(element.poster);
+      }
+    }
+  }
+}
+
 /**
  * Get first slide scene's canvas data for each stage (for thumbnail preview).
  * Also resolves generated image/video refs from mediaFiles so thumbnails show real media.
@@ -216,8 +237,8 @@ function blobWithType(blob: Blob, mimeType: string): Blob {
  */
 export async function getFirstSlideByStages(
   stageIds: string[],
-): Promise<Record<string, import('../types/slides').Slide>> {
-  const result: Record<string, import('../types/slides').Slide> = {};
+): Promise<Record<string, ThumbnailSlide>> {
+  const result: Record<string, ThumbnailSlide> = {};
   try {
     await Promise.all(
       stageIds.map(async (stageId) => {
@@ -235,21 +256,21 @@ export async function getFirstSlideByStages(
               (record) => !record.error && record.type === 'video',
             );
             const mediaMap = new Map(
-              mediaRecords
-                .filter((record) => !record.error)
-                .map((record) => [getMediaRecordElementId(record.id), record] as const),
+              mediaRecords.map((record) => [getMediaRecordElementId(record.id), record] as const),
             );
 
             for (const el of mediaElements as ThumbnailMediaElement[]) {
               const mediaRef = getThumbnailMediaRef(el);
               const exactRecord = mediaRef ? mediaMap.get(mediaRef) : undefined;
+              const usableExactRecord = exactRecord && !exactRecord.error ? exactRecord : undefined;
               const legacyRecord =
+                !exactRecord &&
                 el.type === 'video' &&
                 isLegacySequentialVideoRef(mediaRef) &&
                 videoRecords.length === 1
                   ? videoRecords[0]
                   : undefined;
-              const record = exactRecord ?? legacyRecord;
+              const record = usableExactRecord ?? legacyRecord;
 
               if (!mediaRef || !record) {
                 if (el.type === 'image') {

@@ -7,6 +7,8 @@ const VIDEO_MEDIA_REF = 'gen_vid_thumbnail';
 const LEGACY_STAGE_ID = 'e2e-legacy-video-ref-stage';
 const LEGACY_VIDEO_REF = 'gen_vid_1';
 const UNIQUE_VIDEO_REF = 'gen_vid_unique_legacy';
+const FAILED_EXACT_STAGE_ID = 'e2e-failed-exact-video-ref-stage';
+const OTHER_VIDEO_REF = 'gen_vid_other_success';
 const POSTER_BASE64 =
   'iVBORw0KGgoAAAANSUhEUgAAAAEAAAABCAQAAAC1HAwCAAAAC0lEQVR42mP8/x8AAwMCAO+/p9sAAAAASUVORK5CYII=';
 
@@ -16,17 +18,30 @@ async function seedVideoThumbnailStage({
   courseName = 'Video Thumbnail Course',
   slideMediaRef = VIDEO_MEDIA_REF,
   storedMediaRef = slideMediaRef,
+  storedError,
+  extraStoredMediaRefs = [],
 }: {
   page: Page;
   stageId?: string;
   courseName?: string;
   slideMediaRef?: string;
   storedMediaRef?: string;
+  storedError?: string;
+  extraStoredMediaRefs?: string[];
 }) {
   await page.goto('/', { waitUntil: 'networkidle' });
 
   await page.evaluate(
-    ({ stageId, courseName, slideMediaRef, storedMediaRef, posterBase64, theme }) => {
+    ({
+      stageId,
+      courseName,
+      slideMediaRef,
+      storedMediaRef,
+      storedError,
+      extraStoredMediaRefs,
+      posterBase64,
+      theme,
+    }) => {
       return new Promise<void>((resolve, reject) => {
         const request = indexedDB.open('MAIC-Database');
 
@@ -44,6 +59,24 @@ async function seedVideoThumbnailStage({
           const posterBytes = Uint8Array.from(atob(posterBase64), (char) => char.charCodeAt(0));
           const videoBlob = new Blob([videoBytes], { type: 'video/mp4' });
           const posterBlob = new Blob([posterBytes], { type: 'image/png' });
+          const failedVideoBlob = new Blob([], { type: 'video/mp4' });
+
+          const putVideoRecord = (mediaRef: string, error?: string) => {
+            const blob = error ? failedVideoBlob : videoBlob;
+            tx.objectStore('mediaFiles').put({
+              id: `${stageId}:${mediaRef}`,
+              stageId,
+              type: 'video',
+              blob,
+              mimeType: 'video/mp4',
+              size: blob.size,
+              poster: error ? undefined : posterBlob,
+              prompt: 'A generated classroom video preview',
+              params: '{}',
+              error,
+              createdAt: now,
+            });
+          };
 
           tx.objectStore('stages').put({
             id: stageId,
@@ -96,18 +129,10 @@ async function seedVideoThumbnailStage({
             updatedAt: now,
           });
 
-          tx.objectStore('mediaFiles').put({
-            id: `${stageId}:${storedMediaRef}`,
-            stageId,
-            type: 'video',
-            blob: videoBlob,
-            mimeType: 'video/mp4',
-            size: videoBlob.size,
-            poster: posterBlob,
-            prompt: 'A generated classroom video preview',
-            params: '{}',
-            createdAt: now,
-          });
+          putVideoRecord(storedMediaRef, storedError);
+          for (const mediaRef of extraStoredMediaRefs) {
+            putVideoRecord(mediaRef);
+          }
 
           tx.oncomplete = () => {
             db.close();
@@ -124,6 +149,8 @@ async function seedVideoThumbnailStage({
       courseName,
       slideMediaRef,
       storedMediaRef,
+      storedError,
+      extraStoredMediaRefs,
       posterBase64: POSTER_BASE64,
       theme: defaultTheme,
     },
@@ -185,5 +212,24 @@ test.describe('Home recent video thumbnails', () => {
     await expect(classroomVideo).toHaveCount(1);
     await expect(classroomVideo).toBeVisible({ timeout: 10_000 });
     await expect(classroomVideo).toHaveAttribute('src', /^blob:/);
+  });
+
+  test('does not fall back to another video when the exact legacy ref failed', async ({ page }) => {
+    await seedVideoThumbnailStage({
+      page,
+      stageId: FAILED_EXACT_STAGE_ID,
+      courseName: 'Failed Exact Video Ref Course',
+      slideMediaRef: LEGACY_VIDEO_REF,
+      storedMediaRef: LEGACY_VIDEO_REF,
+      storedError: 'Generation failed',
+      extraStoredMediaRefs: [OTHER_VIDEO_REF],
+    });
+
+    const card = page.locator('.group.cursor-pointer').filter({
+      hasText: 'Failed Exact Video Ref Course',
+    });
+
+    await expect(card.locator('[data-testid="thumbnail-video-indicator"]')).toBeVisible();
+    await expect(card.locator('[data-video-element] video')).toHaveCount(0);
   });
 });
