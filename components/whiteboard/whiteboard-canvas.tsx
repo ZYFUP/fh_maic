@@ -6,6 +6,7 @@ import {
   useEffect,
   useCallback,
   useMemo,
+  memo,
   forwardRef,
   useImperativeHandle,
 } from 'react';
@@ -33,7 +34,7 @@ type InteractiveWhiteboardCanvasProps = {
   readyText: string;
 };
 
-function AnimatedElement({
+function AnimatedElementBase({
   element,
   index,
   isClearing,
@@ -92,6 +93,13 @@ function AnimatedElement({
     </motion.div>
   );
 }
+
+// Memoized so whiteboard pan/zoom (which rerenders the parent on every frame)
+// does not cascade into ScreenElement re-renders. Without this, motion's
+// `layout="position"` inside CodeLineRow remeasures bounding rects against
+// the panning parent transform and animates the diff, making code content
+// visibly lag behind the surrounding element box during a pan.
+const AnimatedElement = memo(AnimatedElementBase);
 
 const InteractiveWhiteboardCanvas = forwardRef<
   WhiteboardCanvasHandle,

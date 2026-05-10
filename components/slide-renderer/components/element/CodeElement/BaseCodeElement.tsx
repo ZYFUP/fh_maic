@@ -315,7 +315,6 @@ function CodeLineRow({
 
   return (
     <motion.div
-      layout="position"
       initial={isNewLine ? { opacity: 0, height: 0 } : false}
       animate={{
         opacity: 1,
