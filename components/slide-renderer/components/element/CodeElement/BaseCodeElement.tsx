@@ -368,10 +368,14 @@ export function BaseCodeElement({ elementInfo, animate }: BaseCodeElementProps) 
   const wrapperRef = useRef<HTMLDivElement>(null);
   const codeBodyRef = useRef<HTMLDivElement>(null);
 
-  // Drag-to-scroll inside the code body. Press and drag with the primary button
-  // to pan the code content vertically and horizontally. The pointer is
-  // captured so the gesture survives leaving the body bounds, and pointer
-  // capture also implicitly prevents the whiteboard pan from kicking in.
+  // Drag-to-scroll inside the code body, plus wheel containment. Whiteboard
+  // pan/zoom is bypassed via two mechanisms:
+  //   1. `setPointerCapture` on pointerdown redirects later pointer events to
+  //      the body, so whiteboard's React `onPointerDown` never sees the drag.
+  //   2. The native wheel listener stops propagation so the whiteboard's
+  //      native `addEventListener('wheel', ...)` never fires while the cursor
+  //      is over the code body. Outside the body (header / border) is handled
+  //      by the wrapper-level wheel listener below.
   useEffect(() => {
     const el = codeBodyRef.current;
     if (!el) return;
@@ -382,6 +386,15 @@ export function BaseCodeElement({ elementInfo, animate }: BaseCodeElementProps) 
     let startScrollLeft = 0;
     let startScrollTop = 0;
     let activePointer: number | null = null;
+
+    const endDrag = () => {
+      if (activePointer !== null && el.hasPointerCapture(activePointer)) {
+        el.releasePointerCapture(activePointer);
+      }
+      dragging = false;
+      activePointer = null;
+      el.style.cursor = 'grab';
+    };
 
     const onPointerDown = (e: PointerEvent) => {
       if (e.button !== 0) return;
@@ -401,72 +414,59 @@ export function BaseCodeElement({ elementInfo, animate }: BaseCodeElementProps) 
       el.scrollTop = startScrollTop - (e.clientY - startY);
     };
 
-    const endDrag = (e: PointerEvent) => {
+    const onPointerEnd = (e: PointerEvent) => {
       if (e.pointerId !== activePointer) return;
-      dragging = false;
-      activePointer = null;
-      if (el.hasPointerCapture(e.pointerId)) el.releasePointerCapture(e.pointerId);
-      el.style.cursor = 'grab';
+      endDrag();
+    };
+
+    const onLostCapture = () => {
+      endDrag();
+    };
+
+    const onWheel = (e: WheelEvent) => {
+      e.stopPropagation();
     };
 
     el.style.cursor = 'grab';
     el.addEventListener('pointerdown', onPointerDown);
     el.addEventListener('pointermove', onPointerMove);
-    el.addEventListener('pointerup', endDrag);
-    el.addEventListener('pointercancel', endDrag);
+    el.addEventListener('pointerup', onPointerEnd);
+    el.addEventListener('pointercancel', onPointerEnd);
+    el.addEventListener('lostpointercapture', onLostCapture);
+    el.addEventListener('wheel', onWheel, { passive: true });
     return () => {
+      endDrag();
       el.removeEventListener('pointerdown', onPointerDown);
       el.removeEventListener('pointermove', onPointerMove);
-      el.removeEventListener('pointerup', endDrag);
-      el.removeEventListener('pointercancel', endDrag);
+      el.removeEventListener('pointerup', onPointerEnd);
+      el.removeEventListener('pointercancel', onPointerEnd);
+      el.removeEventListener('lostpointercapture', onLostCapture);
+      el.removeEventListener('wheel', onWheel);
     };
   }, []);
 
-  // Always consume wheel events inside the code body so the whiteboard zoom
-  // handler never fires while the cursor is over code. Users can wheel outside
-  // the code element to zoom.
-  useEffect(() => {
-    const el = codeBodyRef.current;
-    if (!el) return;
-
-    const handleWheel = (e: WheelEvent) => {
-      e.stopPropagation();
-    };
-
-    el.addEventListener('wheel', handleWheel, { passive: true });
-    return () => el.removeEventListener('wheel', handleWheel);
-  }, []);
-
-  // Block native pointer/mouse/wheel events from reaching whiteboard handlers.
-  // React's `onPointerDown` on a parent that ALSO uses native `addEventListener`
-  // for wheel can race with synthetic event delegation, so we register native
-  // listeners directly on the wrapper to guarantee propagation is stopped.
+  // Wheel events that land on the code element's header / border still need
+  // native propagation stopped — synthetic React `onWheel` would not, because
+  // whiteboard's wheel handler is registered with native `addEventListener`.
   useEffect(() => {
     const el = wrapperRef.current;
     if (!el) return;
 
-    const stopNative = (e: Event) => {
-      e.stopPropagation();
-    };
     const stopWheelOutsideBody = (e: WheelEvent) => {
-      // Body listener already handles wheel events that originate inside the
-      // scrollable area; this catches the header/border so the whiteboard does
-      // not zoom when the cursor is anywhere over the code element.
       const body = codeBodyRef.current;
       if (body && body.contains(e.target as Node)) return;
       e.stopPropagation();
     };
 
-    el.addEventListener('pointerdown', stopNative);
-    el.addEventListener('mousedown', stopNative);
-    el.addEventListener('click', stopNative);
-    el.addEventListener('wheel', stopWheelOutsideBody, { passive: true });
-    return () => {
-      el.removeEventListener('pointerdown', stopNative);
-      el.removeEventListener('mousedown', stopNative);
-      el.removeEventListener('click', stopNative);
-      el.removeEventListener('wheel', stopWheelOutsideBody);
-    };
+    el.addEventListener('wheel', stopWheelOutsideBody);
+    return () => el.removeEventListener('wheel', stopWheelOutsideBody);
+  }, []);
+
+  // Block whiteboard pan from triggering when the user clicks the header /
+  // border. Whiteboard's pan is a React `onPointerDown`, so synthetic
+  // stopPropagation suffices — native listeners are not needed here.
+  const stopPointer = useCallback((e: React.SyntheticEvent) => {
+    e.stopPropagation();
   }, []);
 
   // eslint-disable-next-line @typescript-eslint/no-explicit-any
@@ -576,6 +576,8 @@ export function BaseCodeElement({ elementInfo, animate }: BaseCodeElementProps) 
         width: `${elementInfo.width}px`,
         height: `${elementInfo.height}px`,
       }}
+      onPointerDown={stopPointer}
+      onClick={stopPointer}
     >
       <div
         className="rotate-wrapper w-full h-full"
