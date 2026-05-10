@@ -366,32 +366,108 @@ function CodeLineRow({
 
 export function BaseCodeElement({ elementInfo, animate }: BaseCodeElementProps) {
   const { language, lines, fileName, showLineNumbers = true, fontSize = 14 } = elementInfo;
+  const wrapperRef = useRef<HTMLDivElement>(null);
   const codeBodyRef = useRef<HTMLDivElement>(null);
 
-  // Prevent wheel events from bubbling to the whiteboard zoom handler
-  // when the code body has scrollable content in the wheel direction.
+  // Drag-to-scroll inside the code body. Press and drag with the primary button
+  // to pan the code content vertically and horizontally. The pointer is
+  // captured so the gesture survives leaving the body bounds, and pointer
+  // capture also implicitly prevents the whiteboard pan from kicking in.
+  useEffect(() => {
+    const el = codeBodyRef.current;
+    if (!el) return;
+
+    let dragging = false;
+    let startX = 0;
+    let startY = 0;
+    let startScrollLeft = 0;
+    let startScrollTop = 0;
+    let activePointer: number | null = null;
+
+    const onPointerDown = (e: PointerEvent) => {
+      if (e.button !== 0) return;
+      dragging = true;
+      activePointer = e.pointerId;
+      startX = e.clientX;
+      startY = e.clientY;
+      startScrollLeft = el.scrollLeft;
+      startScrollTop = el.scrollTop;
+      el.setPointerCapture(e.pointerId);
+      el.style.cursor = 'grabbing';
+    };
+
+    const onPointerMove = (e: PointerEvent) => {
+      if (!dragging || e.pointerId !== activePointer) return;
+      el.scrollLeft = startScrollLeft - (e.clientX - startX);
+      el.scrollTop = startScrollTop - (e.clientY - startY);
+    };
+
+    const endDrag = (e: PointerEvent) => {
+      if (e.pointerId !== activePointer) return;
+      dragging = false;
+      activePointer = null;
+      if (el.hasPointerCapture(e.pointerId)) el.releasePointerCapture(e.pointerId);
+      el.style.cursor = 'grab';
+    };
+
+    el.style.cursor = 'grab';
+    el.addEventListener('pointerdown', onPointerDown);
+    el.addEventListener('pointermove', onPointerMove);
+    el.addEventListener('pointerup', endDrag);
+    el.addEventListener('pointercancel', endDrag);
+    return () => {
+      el.removeEventListener('pointerdown', onPointerDown);
+      el.removeEventListener('pointermove', onPointerMove);
+      el.removeEventListener('pointerup', endDrag);
+      el.removeEventListener('pointercancel', endDrag);
+    };
+  }, []);
+
+  // Always consume wheel events inside the code body so the whiteboard zoom
+  // handler never fires while the cursor is over code. Users can wheel outside
+  // the code element to zoom.
   useEffect(() => {
     const el = codeBodyRef.current;
     if (!el) return;
 
     const handleWheel = (e: WheelEvent) => {
-      const { scrollTop, scrollHeight, clientHeight } = el;
-      const canScroll = scrollHeight > clientHeight;
-      if (!canScroll) return; // nothing to scroll — let whiteboard zoom
-
-      const atTop = scrollTop <= 0;
-      const atBottom = scrollTop + clientHeight >= scrollHeight - 1;
-      const scrollingUp = e.deltaY < 0;
-      const scrollingDown = e.deltaY > 0;
-
-      // At scroll limits, let the event propagate for whiteboard zoom
-      if ((atTop && scrollingUp) || (atBottom && scrollingDown)) return;
-
       e.stopPropagation();
     };
 
     el.addEventListener('wheel', handleWheel, { passive: true });
     return () => el.removeEventListener('wheel', handleWheel);
+  }, []);
+
+  // Block native pointer/mouse/wheel events from reaching whiteboard handlers.
+  // React's `onPointerDown` on a parent that ALSO uses native `addEventListener`
+  // for wheel can race with synthetic event delegation, so we register native
+  // listeners directly on the wrapper to guarantee propagation is stopped.
+  useEffect(() => {
+    const el = wrapperRef.current;
+    if (!el) return;
+
+    const stopNative = (e: Event) => {
+      e.stopPropagation();
+    };
+    const stopWheelOutsideBody = (e: WheelEvent) => {
+      // Body listener already handles wheel events that originate inside the
+      // scrollable area; this catches the header/border so the whiteboard does
+      // not zoom when the cursor is anywhere over the code element.
+      const body = codeBodyRef.current;
+      if (body && body.contains(e.target as Node)) return;
+      e.stopPropagation();
+    };
+
+    el.addEventListener('pointerdown', stopNative);
+    el.addEventListener('mousedown', stopNative);
+    el.addEventListener('click', stopNative);
+    el.addEventListener('wheel', stopWheelOutsideBody, { passive: true });
+    return () => {
+      el.removeEventListener('pointerdown', stopNative);
+      el.removeEventListener('mousedown', stopNative);
+      el.removeEventListener('click', stopNative);
+      el.removeEventListener('wheel', stopWheelOutsideBody);
+    };
   }, []);
 
   // eslint-disable-next-line @typescript-eslint/no-explicit-any
@@ -493,6 +569,7 @@ export function BaseCodeElement({ elementInfo, animate }: BaseCodeElementProps) 
 
   return (
     <div
+      ref={wrapperRef}
       className="base-element-code absolute"
       style={{
         top: `${elementInfo.top}px`,
@@ -572,26 +649,31 @@ export function BaseCodeElement({ elementInfo, animate }: BaseCodeElementProps) 
             style={{
               background: '#fafbfc',
               color: '#24292e',
+              userSelect: 'none',
+              WebkitUserSelect: 'none',
+              touchAction: 'none',
             }}
           >
-            <AnimatePresence initial={false} mode="popLayout">
-              {lineHtmlMap.map((lineData, index) => {
-                const line = lines[index];
-                if (!line) return null;
-                return (
-                  <CodeLineRow
-                    key={line.id}
-                    line={line}
-                    lineNumber={index + 1}
-                    highlightedHtml={lineData.html}
-                    showLineNumbers={showLineNumbers}
-                    animState={animStates.get(line.id)}
-                    animate={!!animate}
-                    typingDelay={typingDelays.get(line.id) ?? 0}
-                  />
-                );
-              })}
-            </AnimatePresence>
+            <div style={{ minWidth: 'max-content' }}>
+              <AnimatePresence initial={false} mode="popLayout">
+                {lineHtmlMap.map((lineData, index) => {
+                  const line = lines[index];
+                  if (!line) return null;
+                  return (
+                    <CodeLineRow
+                      key={line.id}
+                      line={line}
+                      lineNumber={index + 1}
+                      highlightedHtml={lineData.html}
+                      showLineNumbers={showLineNumbers}
+                      animState={animStates.get(line.id)}
+                      animate={!!animate}
+                      typingDelay={typingDelays.get(line.id) ?? 0}
+                    />
+                  );
+                })}
+              </AnimatePresence>
+            </div>
           </div>
         </div>
       </div>
