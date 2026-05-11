@@ -53,6 +53,27 @@ const outlineReviewKeys = [
   'generation.confirmAndGenerateCourse',
   'generation.generatingInProgress',
   'generation.sceneGenerateFailed',
+  // New keys for streaming + expand affordances + redesigned editor
+  'generation.outlineEditorEyebrow',
+  'generation.outlineEditorStreamingProgress',
+  'generation.outlineEditorStreamingWaiting',
+  'generation.outlineEditorWaitingConfirm',
+  'generation.outlineExpandHint',
+  'generation.reviewOutlineStreamingDesc',
+  'generation.addKeyPoint',
+  'generation.removeKeyPoint',
+  'generation.insertSceneHere',
+  'generation.deleteSceneConfirm',
+  'generation.deleteSceneConfirmDesc',
+  'generation.deleteSceneConfirmAction',
+  'generation.collapseEditor',
+  'generation.quizConfigSummary',
+] as const;
+
+const countInterpolatedKeys = [
+  'generation.outlineEditorSummary',
+  'generation.outlineEditorStreamingProgress',
+  'generation.quizConfigSummary',
 ] as const;
 
 function getKey(locale: Record<string, unknown>, path: string): unknown {
@@ -73,10 +94,12 @@ describe('outline review locale coverage', () => {
         expect((value as string).trim(), `${localeCode} has empty ${key}`).not.toBe('');
       }
 
-      expect(
-        getKey(localeData, 'generation.outlineEditorSummary'),
-        `${localeCode} should preserve count interpolation`,
-      ).toContain('{{count}}');
+      for (const key of countInterpolatedKeys) {
+        expect(
+          getKey(localeData, key),
+          `${localeCode} should preserve {{count}} in ${key}`,
+        ).toContain('{{count}}');
+      }
     }
   });
 });
