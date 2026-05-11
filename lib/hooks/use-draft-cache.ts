@@ -17,24 +17,27 @@ export function useDraftCache<T>({
   key,
   debounceMs = 500,
 }: UseDraftCacheOptions): UseDraftCacheReturn<T> {
-  const [cachedValue] = useState<T | undefined>(() => {
-    if (typeof window === 'undefined') return undefined;
-    try {
-      const raw = localStorage.getItem(key);
-      if (raw !== null) {
-        return JSON.parse(raw) as T;
-      }
-    } catch {
-      /* ignore parse errors */
-    }
-    return undefined;
-  });
+  // Start undefined to match SSR (no `window`); load from localStorage in an effect
+  // so the consumer gets a state update when the cache is hydrated. Using lazy
+  // useState here doesn't work — React preserves SSR state on hydration and the
+  // initializer never re-runs on the client, so cachedValue stays undefined.
+  const [cachedValue, setCachedValue] = useState<T | undefined>(undefined);
   const timerRef = useRef<ReturnType<typeof setTimeout> | null>(null);
   const pendingValueRef = useRef<T | undefined>(undefined);
   const keyRef = useRef(key);
 
   useEffect(() => {
     keyRef.current = key;
+    try {
+      const raw = localStorage.getItem(key);
+      if (raw !== null) {
+        setCachedValue(JSON.parse(raw) as T);
+      } else {
+        setCachedValue(undefined);
+      }
+    } catch {
+      /* ignore parse errors */
+    }
   }, [key]);
 
   const flushPending = useCallback(() => {
