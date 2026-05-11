@@ -263,11 +263,7 @@ export function OutlinesEditor({
       {/* Scene list */}
       <div className="relative max-h-[64vh] overflow-y-auto px-3 pb-2 md:px-6">
         {outlines.length === 0 ? (
-          <EmptyState
-            isStreaming={isStreaming}
-            disabled={editingDisabled}
-            onAdd={addOutline}
-          />
+          <EmptyState isStreaming={isStreaming} disabled={editingDisabled} onAdd={addOutline} />
         ) : (
           <ol className="flex flex-col py-1">
             {!isStreaming && (
@@ -456,7 +452,11 @@ function SceneRow({
     if (event.key === 'Enter' || event.key === ',') {
       event.preventDefault();
       addKeyPoint(keyPointDraft);
-    } else if (event.key === 'Backspace' && !keyPointDraft && (outline.keyPoints?.length ?? 0) > 0) {
+    } else if (
+      event.key === 'Backspace' &&
+      !keyPointDraft &&
+      (outline.keyPoints?.length ?? 0) > 0
+    ) {
       removeKeyPoint((outline.keyPoints?.length ?? 0) - 1);
     }
   };
@@ -575,9 +575,7 @@ function SceneRow({
                 label={sceneTypeLabel(outline.type)}
                 theme={theme}
               />
-              {!disabled && (
-                <DeleteSceneButton onConfirm={onRemove} />
-              )}
+              {!disabled && <DeleteSceneButton onConfirm={onRemove} />}
             </div>
           </div>
 
@@ -854,7 +852,10 @@ function InsertDivider({
   const { t } = useI18n();
   const isEdge = position === 'edge';
   return (
-    <li role="presentation" className="relative z-10 flex h-7 items-center justify-center px-3 md:px-4">
+    <li
+      role="presentation"
+      className="relative z-10 flex h-7 items-center justify-center px-3 md:px-4"
+    >
       <button
         type="button"
         onClick={onClick}
@@ -998,9 +999,7 @@ function QuizConfigDisclosure({
           </span>
           <SegmentedControl
             value={config.difficulty ?? 'medium'}
-            onChange={(value) =>
-              updateConfig({ difficulty: value as 'easy' | 'medium' | 'hard' })
-            }
+            onChange={(value) => updateConfig({ difficulty: value as 'easy' | 'medium' | 'hard' })}
             options={[
               { value: 'easy', label: t('generation.quizDifficultyEasy') },
               { value: 'medium', label: t('generation.quizDifficultyMedium') },

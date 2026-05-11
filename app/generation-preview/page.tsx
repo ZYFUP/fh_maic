@@ -1298,9 +1298,7 @@ function GenerationPreviewContent() {
                         outlines={session.sceneOutlines ?? streamingOutlines}
                         webSearchSources={webSearchSources}
                         onExpandOutline={
-                          activeStep.id === 'outline' && session
-                            ? handleExpandStreamingOutline
-                            : undefined
+                          activeStep.id === 'outline' ? handleExpandStreamingOutline : undefined
                         }
                       />
                     </motion.div>
