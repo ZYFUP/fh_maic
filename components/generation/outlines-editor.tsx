@@ -174,6 +174,15 @@ export function OutlinesEditor({
     onChange(normalizeOrder(next));
   };
 
+  const moveOutline = (index: number, direction: 'up' | 'down') => {
+    if (editingDisabled) return;
+    const targetIndex = direction === 'up' ? index - 1 : index + 1;
+    if (targetIndex < 0 || targetIndex >= outlines.length) return;
+    const next = [...outlines];
+    [next[index], next[targetIndex]] = [next[targetIndex], next[index]];
+    onChange(normalizeOrder(next));
+  };
+
   const reorderOutline = (fromIndex: number, toIndex: number) => {
     if (editingDisabled) return;
     if (fromIndex === toIndex || fromIndex < 0 || toIndex < 0) return;
@@ -280,6 +289,10 @@ export function OutlinesEditor({
                       outline={outline}
                       onUpdate={(updates) => updateOutline(index, updates)}
                       onRemove={() => removeOutline(index)}
+                      onMoveUp={() => moveOutline(index, 'up')}
+                      onMoveDown={() => moveOutline(index, 'down')}
+                      canMoveUp={index > 0}
+                      canMoveDown={index < outlines.length - 1}
                       sceneTypeLabel={sceneTypeLabel}
                       disabled={editingDisabled}
                       isStreamingTip={isStreamingTip}
@@ -382,6 +395,10 @@ interface SceneRowProps {
   outline: SceneOutline;
   onUpdate: (updates: Partial<SceneOutline>) => void;
   onRemove: () => void;
+  onMoveUp: () => void;
+  onMoveDown: () => void;
+  canMoveUp: boolean;
+  canMoveDown: boolean;
   sceneTypeLabel: (type: SceneType) => string;
   disabled: boolean;
   isStreamingTip: boolean;
@@ -398,6 +415,10 @@ function SceneRow({
   outline,
   onUpdate,
   onRemove,
+  onMoveUp,
+  onMoveDown,
+  canMoveUp,
+  canMoveDown,
   sceneTypeLabel,
   disabled,
   isStreamingTip,
@@ -472,14 +493,29 @@ function SceneRow({
           <button
             type="button"
             draggable={!disabled}
-            title={t('generation.dragScene')}
-            aria-label={t('generation.dragScene')}
+            title={t('generation.dragSceneHint')}
+            aria-label={t('generation.dragSceneHint')}
+            aria-keyshortcuts="Control+ArrowUp Control+ArrowDown Meta+ArrowUp Meta+ArrowDown"
             onDragStart={(event) => {
               event.dataTransfer.effectAllowed = 'move';
               event.dataTransfer.setData('text/plain', outline.id);
               onDragStart();
             }}
             onDragEnd={onDragEnd}
+            onKeyDown={(event) => {
+              if (disabled) return;
+              // Keyboard reorder: Cmd/Ctrl + ArrowUp / ArrowDown. Plain arrows
+              // are reserved for browser text-cursor navigation when focus
+              // shifts between fields.
+              if (!(event.ctrlKey || event.metaKey)) return;
+              if (event.key === 'ArrowUp' && canMoveUp) {
+                event.preventDefault();
+                onMoveUp();
+              } else if (event.key === 'ArrowDown' && canMoveDown) {
+                event.preventDefault();
+                onMoveDown();
+              }
+            }}
             disabled={disabled}
             className={cn(
               'flex size-7 shrink-0 cursor-grab items-center justify-center rounded-md',
@@ -595,7 +631,6 @@ function SceneRow({
               <KeyPointInput
                 value={keyPointDraft}
                 onChange={setKeyPointDraft}
-                onSubmit={() => addKeyPoint(keyPointDraft)}
                 onKeyDown={handleKeyPointKeyDown}
                 placeholder={t('generation.addKeyPoint')}
               />
@@ -864,13 +899,11 @@ function InsertDivider({
 function KeyPointInput({
   value,
   onChange,
-  onSubmit,
   onKeyDown,
   placeholder,
 }: {
   value: string;
   onChange: (v: string) => void;
-  onSubmit: () => void;
   onKeyDown: (event: KeyboardEvent<HTMLInputElement>) => void;
   placeholder: string;
 }) {
@@ -881,6 +914,9 @@ function KeyPointInput({
     setWidth(Math.max(100, Math.min(280, value.length * 8 + 40)));
   }, [value]);
 
+  // Note: intentionally no onBlur commit. Committing on blur surprises users
+  // who type a partial value then click away — that text becomes a chip they
+  // didn't ask for. Only Enter / comma should commit (handled by onKeyDown).
   return (
     <div className="inline-flex items-center gap-1">
       <input
@@ -889,7 +925,6 @@ function KeyPointInput({
         value={value}
         onChange={(event) => onChange(event.target.value)}
         onKeyDown={onKeyDown}
-        onBlur={onSubmit}
         placeholder={placeholder}
         style={{ width }}
         className={cn(
@@ -1102,8 +1137,14 @@ function useAutoResize(ref: React.RefObject<HTMLTextAreaElement | null>, value: 
   useEffect(() => {
     const node = ref.current;
     if (!node) return;
-    node.style.height = 'auto';
-    node.style.height = `${node.scrollHeight}px`;
+    // Defer measurement+write to a frame so a burst of edits doesn't thrash
+    // layout (read scrollHeight ≡ forced reflow). Cancel any prior frame so
+    // we only run once per render.
+    const frame = requestAnimationFrame(() => {
+      node.style.height = 'auto';
+      node.style.height = `${node.scrollHeight}px`;
+    });
+    return () => cancelAnimationFrame(frame);
   }, [ref, value]);
 }
 

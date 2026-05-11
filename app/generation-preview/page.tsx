@@ -98,13 +98,29 @@ function GenerationPreviewContent() {
   const waitForOutlineReviewChoice = (
     outlines: SceneOutline[],
     shouldReview: boolean,
+    signal: AbortSignal,
   ): Promise<SceneOutline[]> =>
-    new Promise((resolve) => {
+    new Promise((resolve, reject) => {
+      if (signal.aborted) {
+        reject(new DOMException('Aborted', 'AbortError'));
+        return;
+      }
       outlineReviewResolveRef.current = resolve;
+      // Reject on abort so navigating away (`goBackToHome`) or unmounting
+      // settles this promise instead of leaking the awaiting startGeneration
+      // closure. The catch at the bottom of startGeneration already swallows
+      // AbortError silently.
+      const onAbort = () => {
+        clearOutlineReviewTimer();
+        outlineReviewResolveRef.current = null;
+        reject(new DOMException('Aborted', 'AbortError'));
+      };
+      signal.addEventListener('abort', onAbort, { once: true });
       if (!shouldReview) {
         outlineReviewTimerRef.current = setTimeout(() => {
           outlineReviewTimerRef.current = null;
           outlineReviewResolveRef.current = null;
+          signal.removeEventListener('abort', onAbort);
           resolve(outlines);
         }, OUTLINE_REVIEW_AUTO_CONTINUE_MS);
       }
@@ -561,7 +577,7 @@ function GenerationPreviewContent() {
 
         setStatusMessage(shouldReviewOutlines ? '' : t('generation.reviewOutlineAutoContinue'));
         setIsConfirmingOutlines(false);
-        outlines = await waitForOutlineReviewChoice(outlines, shouldReviewOutlines);
+        outlines = await waitForOutlineReviewChoice(outlines, shouldReviewOutlines, signal);
         clearOutlineReviewTimer();
         currentSession = {
           ...currentSession,
@@ -992,6 +1008,11 @@ function GenerationPreviewContent() {
   const handleCollapseEditor = () => {
     if (!session) return;
     if (isOutlineStreaming) {
+      // Intentionally drop the review-intent flag: collapsing mid-stream is the
+      // user saying "actually, never mind". When SSE finishes, the no-early-open
+      // path runs and the standard `reviewOutlineEnabled` / auto-continue rules
+      // decide what happens next. There is no parked promise to settle yet —
+      // the promise is created only after SSE completes (see line 583).
       outlineReviewIntentRef.current = false;
       persistSession({ ...session, previewPhase: 'preparing' });
       setStatusMessage('');
@@ -1060,6 +1081,12 @@ function GenerationPreviewContent() {
       return;
     }
 
+    // Fallback: no parked promise (session restored mid-review). The button's
+    // loading state was set above to give the click immediate feedback, but the
+    // editor is about to unmount anyway as we drive the next phase ourselves.
+    // Reset the flag so the state doesn't linger if `startGeneration` later
+    // re-renders the editor for any reason.
+    setIsConfirmingOutlines(false);
     const confirmedSession: GenerationSessionState = {
       ...(session as GenerationSessionState),
       sceneOutlines: finalOutlines,
