@@ -394,8 +394,6 @@
     "deleteSceneConfirmAction": "Удалить",
     "collapseEditor": "Свернуть",
     "quizConfigSummary": "{{count}} вопросов",
-    "quizConfigSummary_one": "1 вопрос",
-    "quizConfigSummary_few": "{{count}} вопроса",
     "dragSceneHint": "Перетащите для сортировки или нажмите Ctrl/⌘ + ↑ / ↓",
     "deleteScene": "Удалить сцену",
     "backToRequirements": "Назад к требованиям",
