@@ -4,7 +4,7 @@ import {
   CLASSROOM_ZIP_FORMAT_VERSION,
   type ClassroomManifest,
 } from '@/lib/export/classroom-zip-types';
-import type { SpeechAction, SpotlightAction } from '@/lib/types/action';
+import type { DiscussionAction, SpeechAction, SpotlightAction } from '@/lib/types/action';
 
 // ─── rewriteAudioRefsToIds ────────────────────────────────────
 
@@ -33,6 +33,36 @@ describe('rewriteAudioRefsToIds', () => {
       type: 'speech',
       text: 'Hello',
       audioUrl: 'https://example.com/a.mp3',
+    });
+  });
+
+  test('replaces discussion agentIndex with imported agentId', () => {
+    const actions = [{ id: 'a1', type: 'discussion' as const, topic: 'Discuss', agentIndex: 1 }];
+    const result = rewriteAudioRefsToIds(actions, {}, { agentIds: ['agent-1', 'agent-2'] });
+    expect(result[0]).toMatchObject({
+      type: 'discussion',
+      topic: 'Discuss',
+      agentId: 'agent-2',
+    });
+    expect(result[0]).not.toHaveProperty('agentIndex');
+  });
+
+  test('falls back to a valid imported agent when legacy discussion agentId is stale', () => {
+    const actions = [
+      { id: 'a1', type: 'discussion' as const, topic: 'Discuss', agentId: 'old-agent-id' },
+    ];
+    const result = rewriteAudioRefsToIds(
+      actions,
+      {},
+      {
+        agentIds: ['teacher-1', 'student-1'],
+        fallbackDiscussionAgentIndex: 1,
+      },
+    );
+    expect(result[0]).toMatchObject({
+      type: 'discussion',
+      topic: 'Discuss',
+      agentId: 'student-1',
     });
   });
 });
@@ -83,6 +113,26 @@ describe('actionsToManifest', () => {
     });
     expect(result[0]).not.toHaveProperty('audioRef');
   });
+
+  test('converts discussion agentId to agentIndex', () => {
+    const actions = [
+      {
+        id: 'act1',
+        type: 'discussion' as const,
+        topic: 'What tradeoff would you make?',
+        prompt: 'Argue for one compromise.',
+        agentId: 'student-2',
+      } as DiscussionAction,
+    ];
+    const result = actionsToManifest(actions, new Map(), new Map([['student-2', 2]]));
+    expect(result[0]).toMatchObject({
+      type: 'discussion',
+      topic: 'What tradeoff would you make?',
+      prompt: 'Argue for one compromise.',
+      agentIndex: 2,
+    });
+    expect(result[0]).not.toHaveProperty('agentId');
+  });
 });
 
 // ─── Manifest round-trip ──────────────────────────────────────
@@ -110,6 +160,14 @@ describe('manifest round-trip', () => {
           color: '#4A90D9',
           priority: 1,
         },
+        {
+          name: 'Student',
+          role: 'student',
+          persona: 'Reflective student',
+          avatar: '🧑‍🎓',
+          color: '#FFB347',
+          priority: 2,
+        },
       ],
       scenes: [
         {
@@ -118,8 +176,12 @@ describe('manifest round-trip', () => {
           order: 0,
           // eslint-disable-next-line @typescript-eslint/no-explicit-any
           content: { type: 'slide', canvas: { id: 's1', elements: [] } } as any,
-          // eslint-disable-next-line @typescript-eslint/no-explicit-any
-          actions: [{ id: 'a1', type: 'speech', text: 'Welcome', audioRef: 'audio/a1.mp3' } as any],
+          actions: [
+            // eslint-disable-next-line @typescript-eslint/no-explicit-any
+            { id: 'a1', type: 'speech', text: 'Welcome', audioRef: 'audio/a1.mp3' } as any,
+            // eslint-disable-next-line @typescript-eslint/no-explicit-any
+            { id: 'a2', type: 'discussion', topic: 'Why does this matter?', agentIndex: 1 } as any,
+          ],
         },
       ],
       mediaIndex: {
@@ -132,11 +194,16 @@ describe('manifest round-trip', () => {
 
     expect(deserialized.formatVersion).toBe(CLASSROOM_ZIP_FORMAT_VERSION);
     expect(deserialized.stage.name).toBe('Test Course');
-    expect(deserialized.agents).toHaveLength(1);
+    expect(deserialized.agents).toHaveLength(2);
     expect(deserialized.scenes).toHaveLength(1);
     expect(deserialized.scenes[0].actions?.[0]).toMatchObject({
       type: 'speech',
       audioRef: 'audio/a1.mp3',
+    });
+    expect(deserialized.scenes[0].actions?.[1]).toMatchObject({
+      type: 'discussion',
+      topic: 'Why does this matter?',
+      agentIndex: 1,
     });
     expect(deserialized.mediaIndex['audio/a1.mp3']).toMatchObject({
       type: 'audio',
