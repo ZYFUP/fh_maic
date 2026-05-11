@@ -349,19 +349,19 @@ function StreamingOutlineVisualizer({
       </div>
 
       <motion.div
-        className="absolute inset-x-0 bottom-0 h-10 bg-gradient-to-t from-white via-white/80 to-transparent dark:from-slate-900 dark:via-slate-900/80"
+        className="pointer-events-none absolute inset-x-0 bottom-0 z-0 h-10 bg-gradient-to-t from-white via-white/80 to-transparent dark:from-slate-900 dark:via-slate-900/80"
         aria-hidden
       />
 
       {/* Expand affordance — always visible to telegraph clickability */}
       {isInteractive && (
-        <div className="pointer-events-none absolute inset-x-0 bottom-1.5 z-10 flex items-center justify-center px-2">
+        <div className="pointer-events-none absolute inset-x-0 bottom-2 z-20 flex items-center justify-center px-2">
           <motion.span
-            className="inline-flex items-center gap-1 rounded-full bg-blue-500/95 px-2 py-1 text-[9px] font-medium tracking-wide text-white shadow-lg shadow-blue-500/40 backdrop-blur"
+            className="inline-flex items-center gap-1 rounded-full bg-blue-500 px-2.5 py-1 text-[10px] font-semibold tracking-wide text-white shadow-lg shadow-blue-500/50 backdrop-blur"
             animate={{ y: [0, -1.5, 0] }}
             transition={{ duration: 2.4, repeat: Infinity, ease: 'easeInOut' }}
           >
-            <Maximize2 className="size-2.5" />
+            <Maximize2 className="size-3" />
             {t('generation.outlineExpandHint')}
           </motion.span>
         </div>
