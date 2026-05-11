@@ -72,7 +72,7 @@ export function actionsToManifest(
       const agentIndex = agentId ? agentIdToIndex.get(agentId) : undefined;
       return {
         ...rest,
-        ...(agentIndex !== undefined ? { agentIndex } : {}),
+        ...(agentIndex !== undefined ? { agentIndex } : agentId ? { agentId } : {}),
       } as ManifestAction;
     }
     return action as ManifestAction;
@@ -109,7 +109,7 @@ export function rewriteAudioRefsToIds(
       const indexedAgentId =
         typeof agentIndex === 'number' ? options.agentIds?.[agentIndex] : undefined;
       const preservedLegacyAgentId =
-        legacyAgentId && (!options.agentIds || options.agentIds.includes(legacyAgentId))
+        legacyAgentId && (!options.agentIds?.length || options.agentIds.includes(legacyAgentId))
           ? legacyAgentId
           : undefined;
       const fallbackAgentId =

@@ -65,6 +65,18 @@ describe('rewriteAudioRefsToIds', () => {
       agentId: 'student-1',
     });
   });
+
+  test('preserves legacy discussion agentId when imported classroom has no generated agents', () => {
+    const actions = [
+      { id: 'a1', type: 'discussion' as const, topic: 'Discuss', agentId: 'default-2' },
+    ];
+    const result = rewriteAudioRefsToIds(actions, {}, { agentIds: [] });
+    expect(result[0]).toMatchObject({
+      type: 'discussion',
+      topic: 'Discuss',
+      agentId: 'default-2',
+    });
+  });
 });
 
 // ─── actionsToManifest ────────────────────────────────────────
@@ -132,6 +144,24 @@ describe('actionsToManifest', () => {
       agentIndex: 2,
     });
     expect(result[0]).not.toHaveProperty('agentId');
+  });
+
+  test('preserves discussion agentId when no manifest agent index is available', () => {
+    const actions = [
+      {
+        id: 'act1',
+        type: 'discussion' as const,
+        topic: 'Which viewpoint is stronger?',
+        agentId: 'default-2',
+      } as DiscussionAction,
+    ];
+    const result = actionsToManifest(actions, new Map(), new Map());
+    expect(result[0]).toMatchObject({
+      type: 'discussion',
+      topic: 'Which viewpoint is stronger?',
+      agentId: 'default-2',
+    });
+    expect(result[0]).not.toHaveProperty('agentIndex');
   });
 });
 
