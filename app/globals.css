@@ -216,3 +216,47 @@
     transform: scale(1.08);
   }
 }
+
+/* 紫色渐变流动动画 - 暗色模式 */
+@keyframes gradient-flow {
+  0% {
+    background-position: 0% 50%;
+  }
+  50% {
+    background-position: 100% 50%;
+  }
+  100% {
+    background-position: 0% 50%;
+  }
+}
+
+@utility dark-gradient-flow {
+  background: linear-gradient(-45deg, #0f172a, #2e1065, #4c1d95, #7c3aed, #4c1d95, #2e1065, #0f172a);
+  background-size: 400% 400%;
+  animation: gradient-flow 10s ease infinite;
+}
+
+/* 紫色光晕效果 */
+@keyframes purple-glow {
+  0%, 100% {
+    opacity: 0.4;
+    transform: scale(1) translate(0, 0);
+  }
+  33% {
+    opacity: 0.7;
+    transform: scale(1.15) translate(15px, -15px);
+  }
+  66% {
+    opacity: 0.5;
+    transform: scale(0.95) translate(-15px, 15px);
+  }
+}
+
+@utility purple-orb {
+  position: absolute;
+  border-radius: 50%;
+  background: radial-gradient(circle, rgba(139, 92, 246, 0.5), rgba(124, 58, 237, 0.2) 50%, transparent 70%);
+  animation: purple-glow 6s ease-in-out infinite;
+  pointer-events: none;
+  filter: blur(40px);
+}

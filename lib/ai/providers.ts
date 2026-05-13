@@ -953,7 +953,7 @@ export const PROVIDERS: Record<ProviderId, ProviderConfig> = {
     id: 'ollama',
     name: 'Ollama',
     type: 'openai',
-    defaultBaseUrl: 'http://localhost:11434/v1',
+    defaultBaseUrl: 'http://localhost:11434',
     requiresApiKey: false,
     icon: '/logos/ollama.svg',
     models: [
@@ -1245,9 +1245,16 @@ export function getModel(config: ModelConfig): ModelWithInfo {
 
   switch (providerType) {
     case 'openai': {
+      // Ollama uses /api/chat endpoint instead of OpenAI-compatible /v1/chat/completions
+      // We need to rewrite the base URL for Ollama
+      const isOpenAICompatible = config.providerId !== 'ollama';
+
       const openaiOptions: Parameters<typeof createOpenAI>[0] = {
         apiKey: effectiveApiKey,
-        baseURL: effectiveBaseUrl,
+        // For Ollama, use the base URL without /v1 suffix since we'll rewrite requests
+        baseURL: isOpenAICompatible
+          ? effectiveBaseUrl
+          : (config.baseUrl || provider?.defaultBaseUrl || 'http://localhost:11434'),
       };
 
       // For OpenAI-compatible providers (not native OpenAI), add a fetch
@@ -1257,6 +1264,33 @@ export function getModel(config: ModelConfig): ModelWithInfo {
       if (config.providerId !== 'openai') {
         const providerId = config.providerId;
         openaiOptions.fetch = async (url: RequestInfo | URL, init?: RequestInit) => {
+          // For Ollama, rewrite the URL from /v1/chat/completions to /api/chat
+          if (providerId === 'ollama') {
+            const originalUrl = url.toString();
+            // Replace /v1/chat/completions or /chat/completions with /api/chat
+            // SDK may omit /v1 if baseURL doesn't include it
+            const ollamaUrl = originalUrl.replace(/\/(?:v1\/)?chat\/completions$/, '/api/chat');
+            if (ollamaUrl !== originalUrl) {
+              url = ollamaUrl;
+            }
+
+            // Also transform the request body to match Ollama's format
+            if (init?.body && typeof init.body === 'string') {
+              try {
+                const body = JSON.parse(init.body);
+                // Ollama uses "model" and "messages" directly, but also needs "stream" field
+                // Keep the body as-is since Ollama accepts OpenAI-compatible format
+                // Just ensure stream is set correctly
+                if (!('stream' in body)) {
+                  body.stream = true; // Default to streaming
+                }
+                init = { ...init, body: JSON.stringify(body) };
+              } catch {
+                /* leave body as-is */
+              }
+            }
+          }
+
           // Read thinking config from globalThis (set by thinking-context.ts)
           const thinkingCtx = (globalThis as Record<string, unknown>).__thinkingContext as
             | { getStore?: () => unknown }

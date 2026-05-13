@@ -226,7 +226,7 @@ export interface VideoProviderConfig {
   /** Supported video durations in seconds */
   supportedDurations?: number[];
   /** Supported output resolutions */
-  supportedResolutions?: Array<'480p' | '720p' | '1080p'>;
+  supportedResolutions?: Array<'480p' | '720p' | '768p' | '1080p'>;
   /** Maximum video duration in seconds */
   maxDuration?: number;
 }
@@ -262,7 +262,7 @@ export interface VideoGenerationOptions {
   /** Desired aspect ratio */
   aspectRatio?: '16:9' | '4:3' | '1:1' | '9:16' | '3:4' | '21:9';
   /** Desired output resolution */
-  resolution?: '480p' | '720p' | '1080p';
+  resolution?: '480p' | '720p' | '768p' | '1080p';
 }
 
 /**
@@ -333,4 +333,81 @@ export interface MediaTaskAdapter<TOptions, TResult> {
    * @returns The generation result if complete, or null if still processing
    */
   pollTaskStatus(taskId: string): Promise<TResult | null>;
+}
+
+// ============================================================================
+// Music Generation Types
+// ============================================================================
+
+export type MusicProviderId = 'minimax-music';
+
+export interface MusicModelInfo {
+  id: string;
+  name: string;
+}
+
+export interface MusicProviderConfig {
+  id: MusicProviderId;
+  name: string;
+  requiresApiKey: boolean;
+  defaultBaseUrl?: string;
+  icon?: string;
+  models: MusicModelInfo[];
+}
+
+export interface MusicGenerationConfig {
+  providerId: MusicProviderId;
+  apiKey: string;
+  baseUrl?: string;
+  model?: string;
+}
+
+export interface MusicGenerationOptions {
+  prompt: string;
+  model?: string;
+}
+
+export interface MusicGenerationResult {
+  url?: string;
+  base64?: string;
+  duration?: number;
+  width?: number;
+  height?: number;
+}
+
+// ============================================================================
+// Coding Plan Types
+// ============================================================================
+
+export type CodingPlanProviderId = 'minimax-coding-plan';
+
+export interface CodingPlanModelInfo {
+  id: string;
+  name: string;
+}
+
+export interface CodingPlanProviderConfig {
+  id: CodingPlanProviderId;
+  name: string;
+  requiresApiKey: boolean;
+  defaultBaseUrl?: string;
+  icon?: string;
+  models: CodingPlanModelInfo[];
+}
+
+export interface CodingPlanGenerationConfig {
+  providerId: CodingPlanProviderId;
+  apiKey: string;
+  baseUrl?: string;
+  model?: string;
+}
+
+export interface CodingPlanGenerationOptions {
+  prompt: string;
+  query?: string;
+  model?: string;
+}
+
+export interface CodingPlanGenerationResult {
+  content: string;
 }

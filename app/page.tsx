@@ -383,7 +383,11 @@ function HomePage() {
   };
 
   return (
-    <div className="min-h-[100dvh] w-full bg-gradient-to-b from-slate-50 to-slate-100 dark:from-slate-950 dark:to-slate-900 flex flex-col items-center p-4 pt-16 md:p-8 md:pt-16 overflow-x-hidden">
+    <div className="min-h-[100dvh] w-full bg-gradient-to-b from-slate-50 to-slate-100 dark:from-slate-950 dark:to-slate-900 dark-gradient-flow relative flex flex-col items-center p-4 pt-16 md:p-8 md:pt-16 overflow-hidden">
+      {/* 紫色光晕装饰 */}
+      <div className="absolute purple-orb w-[600px] h-[600px] -top-48 -left-48 dark:opacity-100 opacity-0" />
+      <div className="absolute purple-orb w-[400px] h-[400px] top-1/3 -right-32 dark:opacity-100 opacity-0" style={{ animationDelay: '2s' }} />
+      <div className="absolute purple-orb w-[500px] h-[500px] -bottom-24 left-1/4 dark:opacity-100 opacity-0" style={{ animationDelay: '4s' }} />
       <input
         ref={fileInputRef}
         type="file"
@@ -505,9 +509,7 @@ function HomePage() {
         )}
       >
         {/* ── Logo ── */}
-        <motion.img
-          src="/logo-horizontal.png"
-          alt="OpenMAIC"
+        <motion.picture
           initial={{ opacity: 0, scale: 0.9 }}
           animate={{ opacity: 1, scale: 1 }}
           transition={{
@@ -516,7 +518,26 @@ function HomePage() {
             stiffness: 200,
             damping: 20,
           }}
-          className="h-12 md:h-16 mb-2 -ml-2 md:-ml-3"
+        >
+          <source srcSet="/logo-horizontal-dark.png" media="(prefers-color-scheme: dark)" />
+          <img
+            src="/logo-horizontal.png"
+            alt="方湖信创"
+            className="h-28 md:h-36 mb-2 -ml-2 md:-ml-3 dark:hidden"
+          />
+        </motion.picture>
+        <motion.img
+          src="/logo-horizontal-dark.png"
+          alt="方湖信创"
+          initial={{ opacity: 0, scale: 0.9 }}
+          animate={{ opacity: 1, scale: 1 }}
+          transition={{
+            delay: 0.1,
+            type: 'spring',
+            stiffness: 200,
+            damping: 20,
+          }}
+          className="h-28 md:h-36 mb-2 -ml-2 md:-ml-3 hidden dark:block"
         />
 
         {/* ── Slogan ── */}

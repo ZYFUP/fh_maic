@@ -58,6 +58,7 @@ async function submitTask(
   // Map OpenMAIC resolution to MiniMax format
   const resolutionMap: Record<string, string> = {
     '720p': '720P',
+    '768p': '768P',
     '1080p': '1080P',
   };
   const resolution = resolutionMap[options.resolution || ''] || '768P';
