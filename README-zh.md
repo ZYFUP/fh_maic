@@ -40,7 +40,6 @@
 </p>
 
 ---
-
 ## ⚠️ AGPL-3.0 合规要求 — 必读
 
 本项目基于 [OpenMAIC (AGPL-3.0)](https://github.com/THU-MAIC/OpenMAIC) 开发，采用 **GNU Affero General Public License v3.0** 开源协议。
