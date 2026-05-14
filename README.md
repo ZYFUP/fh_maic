@@ -32,11 +32,13 @@
   <a href="./README.md">English</a> · <a href="./README-zh.md">简体中文</a>
 </p>
 
+<!--
 <p align="center">
   <a href="https://star-history.com/#ZYFUP/fh_maic&type=Source">
     <img src="https://api.star-history.com/svg?repos=ZYFUP/fh_maic&type=Source" alt="Star History" width="500"/>
   </a>
 </p>
+-->
 
 ---
 
