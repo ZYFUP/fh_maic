@@ -23,11 +23,11 @@
 
 <p align="center">
   <a href="LICENSE"><img src="https://img.shields.io/badge/License-AGPL--3.0-blue.svg?style=flat-square" alt="License: AGPL-3.0"/></a>
-  <img src="https://img.shields.io/badge/Next.js-16-black?style=flat-square&logo=next.js" alt="Next.js"/>
-  <img src="https://img.shields.io/badge/React-19-61DAFB?style=flat-square&logo=react&logoColor=white" alt="React"/>
-  <img src="https://img.shields.io/badge/TypeScript-5-3178C6?style=flat-square&logo=typescript&logoColor=white" alt="TypeScript"/>
-  <img src="https://img.shields.io/badge/LangGraph-1.1-purple?style=flat-square" alt="LangGraph"/>
-  <img src="https://img.shields.io/badge/Tailwind_CSS-4-06B6D4?style=flat-square&logo=tailwindcss&logoColor=white" alt="Tailwind CSS"/>
+  <a href="https://nextjs.org/"><img src="https://img.shields.io/badge/Next.js-16-black?style=flat-square&logo=next.js" alt="Next.js"/></a>
+  <a href="https://react.dev/"><img src="https://img.shields.io/badge/React-19-61DAFB?style=flat-square&logo=react&logoColor=white" alt="React"/></a>
+  <a href="https://www.typescriptlang.org/"><img src="https://img.shields.io/badge/TypeScript-5-3178C6?style=flat-square&logo=typescript&logoColor=white" alt="TypeScript"/></a>
+  <a href="https://langchain.dev/langgraph/"><img src="https://img.shields.io/badge/LangGraph-1.1-purple?style=flat-square" alt="LangGraph"/></a>
+  <a href="https://tailwindcss.com/"><img src="https://img.shields.io/badge/Tailwind_CSS-4-06B6D4?style=flat-square&logo=tailwindcss&logoColor=white" alt="Tailwind CSS"/></a>
   <br/>
   <a href="./README.md">English</a> · <a href="./README-zh.md">简体中文</a>
 </p>
@@ -48,148 +48,161 @@ This project is a derivative work of [OpenMAIC (AGPL-3.0)](https://github.com/TH
 
 > **If you fork, modify, and redistribute this software (whether open-source or not), you are legally required to fully disclose ALL technical details of your modifications. Failure to do so is a violation of AGPL-3.0.**
 
-### Required Documentation for All Modifications
+See [README-zh.md](./README-zh.md) for the full compliance checklist (in Chinese), or refer to the table below:
 
 | Category | What Must Be Disclosed |
 |----------|----------------------|
-| **Code Changes** | All added/modified/deleted source files with change descriptions |
-| **Config Changes** | All new or modified env vars, config files (with defaults & descriptions) |
-| **Dependency Changes** | All new or upgraded packages (name, version, purpose) |
-| **API Changes** | All new/modified/deleted API endpoints and their parameters |
-| **Frontend Changes** | All new or modified pages, components, routes with functionality descriptions |
-| **Database Changes** | All new or modified data models, fields, storage structures |
-| **Auth/ACL Changes** | All new authentication, authorization, or access control mechanisms |
-| **Third-Party Integrations** | All new third-party services, SDKs, API key configurations |
-| **Deployment Changes** | All new deployment methods, environment requirements, infrastructure config |
-| **Brand Customization** | All visual customizations (Logo, colors, UI, text) and how to replicate them |
+| Code Changes | All added/modified/deleted source files with change descriptions |
+| Config Changes | All new or modified env vars, config files (with defaults & descriptions) |
+| Dependency Changes | All new or upgraded packages (name, version, purpose) |
+| API Changes | All new/modified/deleted API endpoints and their parameters |
+| Frontend Changes | All new or modified pages, components, routes with functionality descriptions |
+| Third-Party Integrations | All new third-party services, SDKs, API key configurations |
+| Brand Customization | All visual customizations (Logo, colors, UI, text) and how to replicate them |
 
-### Compliance Example
-
-```markdown
-## Fork Technical Documentation
-
-### Base Version
-- Original: OpenMAIC v0.2.1 (https://github.com/THU-MAIC/OpenMAIC)
-- This fork: XXX-MAIC v1.0.0
-
-### Code Change Summary
-- Added: `lib/media/adapters/minimax-video-adapter.ts` (MiniMax video adapter)
-- Modified: `components/stage/scene-sidebar.tsx` (scene sidebar customization)
-- Removed: `components/xxx/xxx.tsx` (removed XXX feature)
-
-### Config Changes
-- Added `MINIMAX_API_KEY`: MiniMax video/music API key
-- Added `VIDEO_MINIMAX_BASE_URL`: MiniMax video service URL
-
-### Dependency Changes
-- Added `minimax` SDK v1.x.x (for video generation)
-- Upgraded `tailwindcss` from 3.x to 4.x
-
-### API Changes
-- Added `POST /api/media/video` (generate video, params: prompt, model, duration)
-- Modified `GET /api/generate` (added `provider` parameter)
-
-... and so on (see CHANGELOG.md for full details)
-```
-
-### Non-Compliance Consequences
-
-- **AGPL-3.0 Violation**: Redistributing without disclosing modification details violates the license
-- **Legal Risk**: AGPL-3.0 is a legally binding license; violations may result in legal action
-- **Community Trust**: Closed-source forks without technical disclosure are widely condemned by the community
-
-For closed-source commercial use, contact **thu_maic@tsinghua.edu.cn** to obtain a commercial license from the original team.
+For closed-source commercial use, contact **thu_maic@tsinghua.edu.cn**.
 
 ---
 
-## 📖 Project Overview
+## ✨ Features
 
-**方湖 MAIC** is a customized fork of [OpenMAIC](https://github.com/THU-MAIC/OpenMAIC) with local brand customization and feature extensions while retaining all core functionality.
-
-### Core Features
-
-| Feature | Description |
-|---------|-------------|
-| One-click Classroom Generation | Input a topic or upload materials; AI generates a complete course |
-| Multi-Agent Collaboration | AI teacher + AI classmates: lecturing, discussion, real-time interaction |
-| Deep Interactive Mode | 3D visualization, simulations, games, mind maps, online coding |
-| Slide Presentation | Canvas rendering with animations, laser pointer, whiteboard drawing |
-| Real-time Voice | Multi-provider TTS + ASR for voice narration and voice input |
-| Knowledge Q&A | Free-form questions; AI teacher responds with slides/whiteboard |
-| Roundtable Debate | Multi-agent debate with whiteboard illustrations |
-| Media Generation | AI-generated images, videos, music, coding plans |
-| i18n | Interface in Chinese / English / Japanese / Russian |
-| Multi AI Provider | OpenAI / Anthropic / MiniMax / DeepSeek / GLM / Ollama / and more |
-| Export | PowerPoint / interactive HTML / classroom ZIP |
-| OpenClaw Integration | Generate classrooms from Feishu / Slack / Discord / Telegram |
-
----
-
-## 🗞️ Changelog
-
-- **2026-05-13** — Fork release: Added MiniMax video/music/coding-plan adapters, added dark brand logos, refined i18n customization
-
-For full changelog, see [CHANGELOG.md](./CHANGELOG.md) or the original [OpenMAIC repo](https://github.com/THU-MAIC/OpenMAIC).
+| | |
+|---|---|
+| **One-click Classroom** | Input a topic or upload materials → AI generates a complete course |
+| **Multi-Agent Collaboration** | AI teacher + AI classmates with lecturing, discussion & real-time interaction |
+| **Deep Interactive Mode** | 3D visualization, simulations, games, mind maps, online coding |
+| **Canvas Slides** | Custom 2D canvas rendering with animations, laser pointer, whiteboard drawing |
+| **Real-time Voice** | Multi-provider TTS + ASR (MiniMax, OpenAI, Ollama, and more) |
+| **Media Generation** | AI-generated images, videos, music, coding plans (MiniMax adapter included) |
+| **Knowledge Q&A** | Free-form questions; AI teacher responds with slides/whiteboard |
+| **Roundtable Debate** | Multi-agent debate with whiteboard illustrations |
+| **Export** | PowerPoint / interactive HTML / classroom ZIP |
+| **i18n** | Interface in Chinese · English · Japanese · Russian |
+| **Multi AI Provider** | OpenAI · Anthropic · Google Gemini · DeepSeek · MiniMax · GLM · Ollama · and more |
+| **OpenClaw** | Generate classrooms from Feishu, Slack, Discord, Telegram |
 
 ---
 
 ## 🚀 Quick Start
 
-### Prerequisites
-
-- **Node.js** >= 20
-- **pnpm** >= 10
-
-### 1. Install
+**Prerequisites**: Node.js >= 20 · pnpm >= 10
 
 ```bash
+# 1. Clone & install
 git clone https://github.com/YOUR_USERNAME/fh_maic.git
 cd fh_maic
 pnpm install
-```
 
-### 2. Configure
-
-```bash
+# 2. Configure (at least one LLM provider required)
 cp .env.example .env.local
+# Edit .env.local — see #Configuration below
+
+# 3. Run
+pnpm dev
+# Open http://localhost:3000
+
+# 4. Production
+pnpm build && pnpm start
 ```
 
-Fill in at least one LLM provider:
+---
+
+## 🔧 Configuration
+
+Configure at least one LLM provider in `.env.local`:
 
 ```env
-# MiniMax (recommended for China users)
+# MiniMax proxy (recommended for China users)
 ANTHROPIC_API_KEY=sk-xxx
 ANTHROPIC_BASE_URL=https://api.minimaxi.com/anthropic/v1/messages
 ANTHROPIC_MODELS=MiniMax-M2.7-highspeed
 
+# OpenAI-compatible proxy (e.g. MiniMax)
 OPENAI_API_KEY=sk-xxx
 OPENAI_BASE_URL=https://api.minimaxi.com/v1/chat/completions
 OPENAI_MODELS=MiniMax-M2.7-highspeed
 
-# Or OpenAI
+# Or direct OpenAI / Anthropic
 # OPENAI_API_KEY=sk-xxx
-
-# Or Anthropic
 # ANTHROPIC_API_KEY=sk-ant-xxx
 
 # Local Ollama
 # OLLAMA_BASE_URL=http://localhost:11434
 ```
 
-Supported providers: **OpenAI / Anthropic / Google Gemini / DeepSeek / Qwen / Kimi / MiniMax / Grok (xAI) / OpenRouter / Doubao / Tencent Hunyuan / Xiaomi MiMo / GLM (Zhipu) / Ollama (local) / Lemonade (local LLM/image/TTS/ASR)**, and any OpenAI-compatible API.
+**Supported providers**: OpenAI · Anthropic · Google Gemini · DeepSeek · Qwen · Kimi · **MiniMax** · Grok (xAI) · OpenRouter · Doubao · Tencent Hunyuan · Xiaomi MiMo · GLM (Zhipu) · Ollama · Lemonade — and any OpenAI-compatible API.
 
-### 3. Run
+---
 
-```bash
-pnpm dev
+## 🏗️ Architecture
+
+```
+User Input
+    │
+    ▼
+┌─────────────────────────────────────────────────────┐
+│  Generation Pipeline  (lib/generation/)             │
+│  Stage 1: Outline → Stage 2: Full Scenes           │
+└────────────────────┬────────────────────────────────┘
+                     │ StageStore + StageAPI
+                     ▼
+┌─────────────────────────────────────────────────────┐
+│  Classroom Page  (SSE via /api/chat)                │
+│  Director Graph  (LangGraph, lib/orchestration/)    │
+│  Multi-agent: director → agent_generate → director  │
+└────────────────────┬────────────────────────────────┘
+                     │ action events
+                     ▼
+┌─────────────────────────────────────────────────────┐
+│  ActionEngine  (lib/action/engine.ts)               │
+│  28+ action types: speech, whiteboard, spotlight…   │
+└────────────────────┬────────────────────────────────┘
+                     │ state updates
+                     ▼
+┌─────────────────────────────────────────────────────┐
+│  Zustand Stores  (lib/store/)                      │
+│  canvas · media-generation · settings · whiteboard  │
+└─────────────────────────────────────────────────────┘
 ```
 
-Open **http://localhost:3000**
+### Key Modules
 
-### 4. Production Build
+| Module | Location | Responsibility |
+|--------|----------|---------------|
+| **Generation Pipeline** | `lib/generation/` | Two-stage: outline → scene → media |
+| **Director Graph** | `lib/orchestration/director-graph.ts` | LangGraph state machine for multi-agent |
+| **Action Engine** | `lib/action/engine.ts` | Execute speech, whiteboard, spotlight, laser… |
+| **Stage API** | `lib/api/stage-api.ts` | Facade for scene/canvas/whiteboard ops |
+| **LLM Layer** | `lib/ai/llm.ts` | Unified callLLM/streamLLM via Vercel AI SDK |
+| **Slide Renderer** | `components/slide-renderer/` | Canvas 2D custom engine |
+| **Whiteboard** | `components/whiteboard/` | SVG + ProseMirror |
+
+---
+
+## 🛠️ Development
 
 ```bash
-pnpm build && pnpm start
+pnpm dev              # Dev server
+pnpm build           # Production build
+pnpm start           # Production server
+
+# Code quality
+pnpm lint            # ESLint
+pnpm format          # Prettier format
+pnpm check           # Prettier check
+npx tsc --noEmit     # TypeScript
+
+# Testing
+pnpm test            # Unit tests (vitest)
+pnpm test:e2e        # Playwright e2e tests
+pnpm test:e2e:ui     # Playwright with UI
+
+# i18n
+pnpm check:i18n-keys # Check missing i18n keys
+
+# Evaluation
+pnpm eval:whiteboard        # Whiteboard layout eval
+pnpm eval:outline-language  # Outline language eval
 ```
 
 ---
@@ -198,103 +211,57 @@ pnpm build && pnpm start
 
 ```
 fh_maic/
-├── app/                        # Next.js App Router
-│   ├── api/                    #   Server API routes
-│   │   ├── generate/           #     Classroom generation pipeline (outline → content → media → TTS)
-│   │   ├── generate-classroom/ #     Async job submission + polling
-│   │   ├── chat/              #     Multi-agent discussion (SSE streaming)
-│   │   ├── pbl/               #     Project-Based Learning endpoints
-│   │   └── ...                #     quiz-grade, parse-pdf, web-search, transcription etc.
-│   ├── classroom/[id]/         #   Classroom playback page
-│   └── page.tsx               #   Home page
-│
-├── lib/                       # Core business logic
-│   ├── generation/            #   Two-stage lesson generation pipeline
-│   ├── orchestration/         #   LangGraph multi-agent orchestration (director graph)
-│   ├── playback/              #   Playback state machine (idle → playing → live)
-│   ├── action/                #   Action execution engine (28+ action types)
-│   ├── ai/                    #   LLM provider abstraction layer
-│   ├── api/                   #   Scene API facade (slide/canvas/scene)
-│   ├── store/                 #   Zustand state stores
-│   ├── types/                 #   Centralized TypeScript types
-│   ├── audio/                 #   TTS & ASR providers
-│   ├── media/                 #   Image & video generation (incl. MiniMax adapters)
-│   ├── export/                #   PPTX & HTML export
-│   ├── hooks/                 #   55+ React custom hooks
-│   ├── i18n/                  #   i18n (zh-CN / en-US / ru-RU)
-│   └── ...                    #   prosemirror, storage, pdf, web-search, utils
-│
-├── components/                # React UI components
-│   ├── slide-renderer/        #   Canvas slide editor & renderer
-│   │   ├── Editor/Canvas/    #     Interactive editing canvas
-│   │   └── components/element/ #    Element renderers (text/image/shape/table/chart…)
-│   ├── scene-renderers/       #   Quiz/Interactive/PBL scene renderers
-│   ├── generation/            #   Generation toolbar & progress
-│   ├── chat/                  #   Chat area & session management
-│   ├── settings/              #   Settings panel
-│   ├── whiteboard/            #   SVG whiteboard
-│   ├── agent/                 #   Agent avatar/config/info bar
-│   ├── ui/                    #   Base UI (shadcn/ui + Radix)
-│   └── ...                    #   audio, roundtable, stage, ai-elements
-│
-├── packages/                  # Monorepo packages
-│   ├── pptxgenjs/             #   PowerPoint generation
-│   └── mathml2omml/          #   MathML → Office Math conversion
-│
-├── public/                   # Static assets (logos, avatars, brand assets)
-└── skills/                   # OpenClaw / ClawHub Skills
-    └── openmaic/             #   Guided setup & generation SOP
+├── app/                    # Next.js App Router
+│   ├── api/               #   Server routes (generate, chat, pbl, transcription…)
+│   ├── classroom/[id]/    #   Classroom playback page
+│   └── page.tsx          #   Home page
+├── lib/                   # Core business logic
+│   ├── generation/        #   Two-stage lesson generation pipeline
+│   ├── orchestration/     #   LangGraph multi-agent orchestration
+│   ├── action/            #   Action execution engine (28+ action types)
+│   ├── ai/               #   LLM provider abstraction
+│   ├── api/              #   Stage API facade
+│   ├── store/            #   Zustand stores
+│   ├── audio/            #   TTS & ASR providers
+│   ├── media/            #   Image & video generation
+│   ├── export/           #   PPTX & HTML export
+│   └── i18n/             #   zh-CN / en-US / ja-JP / ru-RU
+├── components/            # React UI
+│   ├── slide-renderer/    #   Canvas 2D slide editor & renderer
+│   ├── scene-renderers/  #   Quiz / Interactive / PBL renderers
+│   ├── whiteboard/       #   SVG whiteboard
+│   ├── chat/             #   Chat area & session
+│   └── ui/               #   shadcn/ui + Radix base components
+└── packages/             # Monorepo sub-packages
+    ├── pptxgenjs/        #   PowerPoint generation
+    └── mathml2omml/      #   MathML → Office Math conversion
 ```
 
 ---
 
-## 🔑 Core Technical Architecture
+## 💡 Example Inputs
 
-| Module | Technology |
-|--------|------------|
-| Framework | Next.js 16 (App Router) + React 19 + TypeScript 5 |
-| Multi-Agent | LangGraph 1.1 state machine |
-| State Management | Zustand |
-| Styling | Tailwind CSS 4 + shadcn/ui + Radix UI |
-| Slide Rendering | Canvas 2D custom engine |
-| Whiteboard | SVG + ProseMirror |
-| PPT Export | pptxgenjs custom extension |
-| Math | MathML → OOML conversion (custom package) |
-| TTS | MiniMax / VoxCPM2 / OpenAI / Gemini / Ollama / Lemonade |
-| ASR | MiniMax / OpenAI / Ollama / Lemonade |
-| Image Generation | MiniMax / OpenAI / Gemini / Ollama / Lemonade |
-| Video Generation | MiniMax |
-| Music Generation | MiniMax |
-| Coding Plan Generation | MiniMax |
-| PDF Parsing | MinerU (optional) |
-| Local LLM | Ollama / Lemonade |
-| i18n | i18next |
-
----
-
-## 💡 Use Cases
-
-| Input | Output |
-|-------|--------|
-| "Teach me Python from scratch" | Complete course: slides + quiz + online coding |
-| "Explain blockchain principles" | AI teacher + whiteboard diagrams + Q&A |
-| "Simulate light refraction experiment" | Interactive physics simulation |
-| "Analyze current economic situation" | Multi-agent roundtable + data visualization |
-| "Generate an electronic song about spring" | AI-generated music |
+| Input | Generated |
+|-------|-----------|
+| "Teach me Python from scratch" | Slides + quiz + online coding |
+| "Explain blockchain with diagrams" | AI teacher + whiteboard diagrams |
+| "Simulate light refraction" | Interactive physics simulation |
+| "Debate: AI in education" | Multi-agent roundtable + data viz |
+| "Write an electronic song about spring" | AI-generated music |
 
 ---
 
 ## 🤝 Contributing
 
-**Important for forks**: Every modification to this codebase should be documented in your project's documentation to maintain technical transparency.
+For contribution guidelines, see [CONTRIBUTING.md](./CONTRIBUTING.md).
 
-For the original contribution guidelines, see [CONTRIBUTING.md](./CONTRIBUTING.md).
+**Forks**: Document all modifications per the AGPL-3.0 compliance table above. Every change (code, config, dependency, API, UI, brand) must be disclosed in your fork's documentation.
 
 ---
 
 ## 📝 Citation
 
-If you use this project in research, please also cite the original paper:
+If you use this project in research, please cite the original paper:
 
 ```bibtex
 @Article{JCST-2509-16000,
@@ -311,6 +278,4 @@ If you use this project in research, please also cite the original paper:
 
 ## 📄 License
 
-This project is licensed under [AGPL-3.0](./LICENSE).
-
-For closed-source commercial licensing, contact: **thu_maic@tsinghua.edu.cn**
+Licensed under [AGPL-3.0](./LICENSE). Closed-source commercial licensing: **thu_maic@tsinghua.edu.cn**
